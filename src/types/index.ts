@@ -4,6 +4,7 @@ interface ShapeState {
   y: number;
   width: number;
   height: number;
+  css?: string;
 }
 
 interface RectState extends ShapeState {}
