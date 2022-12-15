@@ -8,8 +8,6 @@ const Editor = () => {
   const [selected, setSelected] = createSignal<string>("");
   const [shapeStates, setShapeStates] = createStore<ShapeState[]>([]);
 
-  const selectedShape = () => shapeStates.find((s) => s.id === selected());
-
   const setShapeState = (nextState: ShapeState) => {
     setShapeStates((prevArr) => {
       const nextArr = [...prevArr];
