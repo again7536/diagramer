@@ -5,25 +5,34 @@ import { ShapeType } from "../../types";
 import styles from "./Menu.module.scss";
 
 const Menu = () => {
-  const { shapeStates, selected, addShape, setShapeOf } = useStore().shape;
+  const { shapeStates, selectedElem, addShape, setShapeOf } = useStore().shape;
   const selectedIdx = createMemo(() =>
-    shapeStates.findIndex((s) => s.id === selected()?.id)
+    shapeStates.findIndex((s) => s.id === selectedElem()?.id)
   );
 
   const handleClickBtn = (type: ShapeType) => {
     addShape({
       id: uuidv4(),
       type,
-      x: 40,
-      y: 40,
-      width: 100,
-      height: 100,
+      cur: {
+        x: 40,
+        y: 40,
+        width: 100,
+        height: 100,
+      },
+      prev: {
+        x: 40,
+        y: 40,
+        width: 100,
+        height: 100,
+      },
     });
   };
   const handleChangeCss = (e: InputEvent) => {
-    setShapeOf(selectedIdx(), {
+    const $target = e.target as HTMLTextAreaElement;
+    setShapeOf($target.id, {
       ...shapeStates[selectedIdx()],
-      css: (e.target as HTMLTextAreaElement).value,
+      css: $target.value,
     });
     console.log(shapeStates[selectedIdx()].css);
   };

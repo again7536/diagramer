@@ -7,9 +7,9 @@ const Rect = (props: RectProps) => {
     <rect
       id={props.id}
       class="shape"
-      width={props.width}
-      height={props.height}
-      transform={`translate(${props.x}, ${props.y})`}
+      width={props.cur.width}
+      height={props.cur.height}
+      transform={`translate(${props.cur.x}, ${props.cur.y})`}
       style={props.css ?? undefined}
     />
   );

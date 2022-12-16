@@ -1,4 +1,4 @@
-import { createMemo, createSignal, Index } from "solid-js";
+import { createMemo, Index } from "solid-js";
 import { ShapeState } from "../../types";
 import { CIRCLE_CONFIG } from "../../constants";
 
@@ -12,13 +12,13 @@ const Resizer = (props: ResizerProps) => {
   );
 
   return (
-    <g transform={`translate(${props.x}, ${props.y})`}>
+    <g transform={`translate(${props.cur.x}, ${props.cur.y})`}>
       <Index each={idxArr()}>
         {(i) => (
           <circle
             class={`resizer-${i()}`}
-            cx={props.width * CIRCLE_CONFIG[i()].x}
-            cy={props.height * CIRCLE_CONFIG[i()].y}
+            cx={props.cur.width * CIRCLE_CONFIG[i()].x}
+            cy={props.cur.height * CIRCLE_CONFIG[i()].y}
             r={3}
             fill="blue"
             stroke="skyblue"

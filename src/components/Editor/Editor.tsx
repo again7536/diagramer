@@ -15,87 +15,98 @@ import { useStore } from "../../storage";
 import Line from "../Shapes/Line/Line";
 import Circle from "../Shapes/Circle/Circle";
 import { calcShapeState } from "../../utils/calcShapeState";
+import { Dimension } from "../../types";
 
-interface DragPos {
+interface DragStartDimension {
   startX: number;
   startY: number;
-  initX: number;
-  initY: number;
-  initWidth: number;
-  initHeight: number;
 }
 
 const Editor = () => {
   let svgRef: SVGSVGElement | undefined;
   /*
-    selectedShape : most recently selected shape
-    selected: most recently selected "SVGElement"
+    selectedShapeIds : most recently selectedElem shape
+    selectedElem: most recently selectedElem "SVGElement"
   */
   const {
     shapeStates,
-    selectedShape,
-    selected,
-    setSelectedShape,
-    setSelected,
+    selectedShapeIds,
+    selectedElem,
+    getShapeState,
+    setSelectedShapeIds,
+    setSelectedElem,
     setShapeOf,
   } = useStore().shape;
   const [isDrag, setDrag] = createSignal<boolean>(false);
-  const [startDim, setStartDim] = createSignal<DragPos>({
+  const [selectorDim, setSelectorDim] = createSignal<Dimension>({
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+  });
+  const [startDim, setStartDim] = createSignal<DragStartDimension>({
     startX: 0,
     startY: 0,
-    initX: 0,
-    initY: 0,
-    initWidth: 0,
-    initHeight: 0,
   });
-  const selectedShapeIdx = createMemo(() =>
-    shapeStates.findIndex((s) => s.id === selectedShape()?.id)
-  );
 
   const handleMouseDown = (e: MouseEvent) => {
     const $target = e.target as SVGElement;
-    const shapeState = shapeStates[selectedShapeIdx()];
+    if ($target.classList[0] === "shape") setSelectedShapeIds([$target.id]);
 
     setDrag(true);
-    setSelected($target);
+    setSelectedElem($target);
     setStartDim({
       startX: e.clientX,
       startY: e.clientY,
-      initX: shapeState?.x ?? 0,
-      initY: shapeState?.y ?? 0,
-      initWidth: shapeState?.width ?? 0,
-      initHeight: shapeState?.height ?? 0,
     });
-
-    if ($target.classList[0] === "shape") setSelectedShape($target);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDrag() || !selected()) return;
-    const $selected = selected() as SVGElement;
+    if (!isDrag() || !selectedElem()) return;
+    const $selectedElem = selectedElem() as SVGElement;
     const diffX = e.clientX - startDim().startX;
     const diffY = e.clientY - startDim().startY;
-    const selectedShapeState = shapeStates[selectedShapeIdx()];
 
-    if ($selected.classList[0].startsWith("resizer")) {
-      const resizerIdx = +$selected.classList[0].split("-")[1];
-      setShapeOf(selectedShapeIdx(), {
-        ...selectedShapeState,
-        ...calcShapeState({
-          ...startDim(),
-          ...CIRCLE_CONFIG[resizerIdx].resize,
-          diffX,
-          diffY,
-        }),
+    if ($selectedElem === svgRef) {
+      setSelectorDim({
+        width: diffX,
+        height: diffY,
+        x: startDim().startX - (svgRef?.getBoundingClientRect().left ?? 0),
+        y: startDim().startY - (svgRef?.getBoundingClientRect().top ?? 0),
       });
       return;
     }
 
-    if ($selected.classList[0] === "shape") {
-      setShapeOf(selectedShapeIdx(), {
-        ...selectedShapeState,
-        x: diffX + startDim().initX,
-        y: diffY + startDim().initY,
+    if ($selectedElem.classList[0].startsWith("resizer")) {
+      const resizerIdx = +$selectedElem.classList[0].split("-")[1];
+      selectedShapeIds.forEach((shapeId) => {
+        const state = getShapeState(shapeId);
+        setShapeOf(shapeId, {
+          ...state,
+          cur: {
+            ...calcShapeState({
+              ...CIRCLE_CONFIG[resizerIdx].resize,
+              ...state.prev,
+              diffX,
+              diffY,
+            }),
+          },
+        });
+      });
+      return;
+    }
+
+    if ($selectedElem.classList[0] === "shape") {
+      selectedShapeIds.forEach((shapeId) => {
+        const state = getShapeState(shapeId);
+        setShapeOf(shapeId, {
+          ...state,
+          cur: {
+            ...state.cur,
+            x: diffX + state.prev.x,
+            y: diffY + state.prev.y,
+          },
+        });
       });
       return;
     }
@@ -104,12 +115,38 @@ const Editor = () => {
   const handleMouseUp = (e: MouseEvent) => {
     setDrag(false);
 
-    const $target = e.target as SVGElement;
-    if ($target === svgRef) {
-      setSelected(undefined);
-      setSelectedShape(undefined);
-    }
-    if ($target.classList[0] === "shape") {
+    const $selected = selectedElem() as SVGElement;
+    if ($selected === svgRef) {
+      const filtered = shapeStates
+        .filter((state) => {
+          const cx = state.cur.x + state.cur.width / 2;
+          const cy = state.cur.y + state.cur.height / 2;
+          if (
+            cx > selectorDim().x &&
+            cx < selectorDim().x + selectorDim().width &&
+            cy > selectorDim().y &&
+            cy < selectorDim().y + selectorDim().height
+          )
+            return state;
+        })
+        .map((f) => f.id);
+
+      setSelectedElem(
+        $selected.querySelector<SVGElement>(`[id='${filtered[0]}']`) ??
+          undefined
+      );
+      setSelectedShapeIds(filtered);
+      setSelectorDim({ width: 0, height: 0, x: 0, y: 0 });
+    } else {
+      selectedShapeIds.forEach((shapeId) => {
+        const state = getShapeState(shapeId);
+        setShapeOf(shapeId, {
+          ...state,
+          prev: {
+            ...state.cur,
+          },
+        });
+      });
     }
   };
 
@@ -138,8 +175,11 @@ const Editor = () => {
           </Switch>
         )}
       </Index>
-      <Show when={selectedShape()}>
-        <Resizer {...shapeStates[selectedShapeIdx()]} />
+      <For each={selectedShapeIds}>
+        {(id) => <Resizer {...getShapeState(id)} />}
+      </For>
+      <Show when={selectedElem() === svgRef}>
+        <rect {...selectorDim()} fill="#0000ff30" />
       </Show>
     </svg>
   );

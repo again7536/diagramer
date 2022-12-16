@@ -1,10 +1,10 @@
 interface CalcShapeStateParams {
   diffX: number;
   diffY: number;
-  initX: number;
-  initY: number;
-  initWidth: number;
-  initHeight: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   dx: number;
   dy: number;
   dwidth: number;
@@ -14,28 +14,28 @@ interface CalcShapeStateParams {
 const calcShapeState = ({
   diffX,
   diffY,
-  initX,
-  initY,
-  initWidth,
-  initHeight,
+  x,
+  y,
+  width,
+  height,
   dx,
   dy,
   dwidth,
   dheight,
 }: CalcShapeStateParams) => {
-  let x = dx * diffX + initX;
-  let y = dy * diffY + initY;
-  let width = dwidth * diffX + initWidth;
-  let height = dheight * diffY + initHeight;
-  if (width < 0) {
-    width = -width;
-    x = x - width;
+  let nextX = dx * diffX + x;
+  let nextY = dy * diffY + y;
+  let nextWidth = dwidth * diffX + width;
+  let nextHeight = dheight * diffY + height;
+  if (nextWidth < 0) {
+    nextWidth = -nextWidth;
+    nextX = nextX - nextWidth;
   }
-  if (height < 0) {
-    height = -height;
-    y = y - height;
+  if (nextHeight < 0) {
+    nextHeight = -nextHeight;
+    nextY = nextY - nextHeight;
   }
-  return { x, y, width, height };
+  return { x: nextX, y: nextY, width: nextWidth, height: nextHeight };
 };
 
 export { calcShapeState };

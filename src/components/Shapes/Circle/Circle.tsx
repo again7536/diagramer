@@ -8,10 +8,10 @@ const Circle = (props: CircleProps) => {
       id={props.id}
       class="shape"
       style={props.css}
-      cx={props.x + props.width / 2}
-      cy={props.y + props.height / 2}
-      rx={props.width / 2}
-      ry={props.height / 2}
+      cx={props.cur.x + props.cur.width / 2}
+      cy={props.cur.y + props.cur.height / 2}
+      rx={props.cur.width / 2}
+      ry={props.cur.height / 2}
     ></ellipse>
   );
 };
