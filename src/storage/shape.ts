@@ -5,14 +5,13 @@ import { ShapeState } from "../types";
 
 const shapeStore = () => {
   const [shapeStates, setShapeStates] = createStore<ShapeState[]>([]);
-  const [selected, setSelected] = createSignal<{
-    id: string;
-    className: string;
-  }>({ id: "", className: "" });
+  const [selected, setSelected] = createSignal<SVGElement>();
+  const [selectedShape, setSelectedShape] = createSignal<SVGElement>();
 
   return {
     shapeStates,
     selected,
+    selectedShape,
     addShape(newState: ShapeState) {
       setShapeStates(produce((states) => states.push(newState)));
     },
@@ -20,6 +19,7 @@ const shapeStore = () => {
       setShapeStates(produce((states) => (states[idx] = nextState)));
     },
     setSelected,
+    setSelectedShape,
   };
 };
 

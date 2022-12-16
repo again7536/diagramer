@@ -1,9 +1,18 @@
-import { createMemo, createSignal, For, Index, Setter, Show } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  For,
+  Index,
+  Match,
+  Setter,
+  Show,
+  Switch,
+} from "solid-js";
 import Rect from "../Rect/Rect";
-import { v4 as uuidv4 } from "uuid";
 import Resizer from "../Resizer/Resizer";
 import { CIRCLE_CONFIG } from "../../constants";
 import { useStore } from "../../storage";
+import Line from "../Line/Line";
 
 interface DragPos {
   startX: number;
@@ -14,14 +23,60 @@ interface DragPos {
   initHeight: number;
 }
 
+interface CalcShapeStateParams {
+  diffX: number;
+  diffY: number;
+  initX: number;
+  initY: number;
+  initWidth: number;
+  initHeight: number;
+  dx: number;
+  dy: number;
+  dwidth: number;
+  dheight: number;
+}
+
+const calcShapeState = ({
+  diffX,
+  diffY,
+  initX,
+  initY,
+  initWidth,
+  initHeight,
+  dx,
+  dy,
+  dwidth,
+  dheight,
+}: CalcShapeStateParams) => {
+  let x = dx * diffX + initX;
+  let y = dy * diffY + initY;
+  let width = dwidth * diffX + initWidth;
+  let height = dheight * diffY + initHeight;
+  if (width < 0) {
+    width = -width;
+    x = x - width;
+  }
+  if (height < 0) {
+    height = -height;
+    y = y - height;
+  }
+  return { x, y, width, height };
+};
+
 const Editor = () => {
   let svgRef: SVGSVGElement | undefined;
   /*
-    If id exists, it is shape
-    Otherwise, it is resizer
+    selectedShape : most recently selected shape
+    selected: most recently selected "SVGElement"
   */
-  const { shapeStates, selected, setSelected, setShapeOf } = useStore().shape;
-
+  const {
+    shapeStates,
+    selectedShape,
+    selected,
+    setSelectedShape,
+    setSelected,
+    setShapeOf,
+  } = useStore().shape;
   const [isDrag, setDrag] = createSignal<boolean>(false);
   const [startDim, setStartDim] = createSignal<DragPos>({
     startX: 0,
@@ -32,20 +87,17 @@ const Editor = () => {
     initHeight: 0,
   });
   const selectedShapeIdx = createMemo(() =>
-    shapeStates.findIndex((s) => s.id === selected().id)
+    shapeStates.findIndex((s) => s.id === selectedShape()?.id)
   );
 
   const handleMouseDown = (e: MouseEvent) => {
-    setDrag(true);
-
     const $target = e.target as SVGElement;
-    setSelected((prev) => ({
-      className:
-        $target.classList[0] === "" ? prev.className : $target.classList[0],
-      id: $target.id === "" ? prev.id : $target.id,
-    }));
-    const shapeState = shapeStates[selectedShapeIdx()];
 
+    setDrag(true);
+    setSelected($target);
+    if ($target.classList[0] === "shape") setSelectedShape($target);
+
+    const shapeState = shapeStates[selectedShapeIdx()];
     setStartDim({
       startX: e.clientX,
       startY: e.clientY,
@@ -57,11 +109,27 @@ const Editor = () => {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDrag()) return;
+    if (!isDrag() || !selected()) return;
+    const $selected = selected() as SVGElement;
     const diffX = e.clientX - startDim().startX;
     const diffY = e.clientY - startDim().startY;
     const selectedShapeState = shapeStates[selectedShapeIdx()];
-    if (selected().className === "shape") {
+
+    if ($selected.classList[0].startsWith("resizer")) {
+      const resizerIdx = +$selected.classList[0].split("-")[1];
+      setShapeOf(selectedShapeIdx(), {
+        ...selectedShapeState,
+        ...calcShapeState({
+          ...startDim(),
+          ...CIRCLE_CONFIG[resizerIdx].resize,
+          diffX,
+          diffY,
+        }),
+      });
+      return;
+    }
+
+    if ($selected.classList[0] === "shape") {
       setShapeOf(selectedShapeIdx(), {
         ...selectedShapeState,
         x: diffX + startDim().initX,
@@ -69,27 +137,16 @@ const Editor = () => {
       });
       return;
     }
-    if (selected().className.startsWith("resizer")) {
-      const resizerIdx = +selected().className.split("-")[1];
-      setShapeOf(selectedShapeIdx(), {
-        ...selectedShapeState,
-        x: CIRCLE_CONFIG[resizerIdx].resize.dx * diffX + startDim().initX,
-        y: CIRCLE_CONFIG[resizerIdx].resize.dy * diffY + startDim().initY,
-        width:
-          CIRCLE_CONFIG[resizerIdx].resize.dwidth * diffX +
-          startDim().initWidth,
-        height:
-          CIRCLE_CONFIG[resizerIdx].resize.dheight * diffY +
-          startDim().initHeight,
-      });
-    }
   };
 
   const handleMouseUp = (e: MouseEvent) => {
     setDrag(false);
 
     const $target = e.target as SVGElement;
-    if ($target === svgRef) return;
+    if ($target === svgRef) {
+      setSelected(undefined);
+      setSelectedShape(undefined);
+    }
     if ($target.classList[0] === "shape") {
     }
   };
@@ -104,8 +161,19 @@ const Editor = () => {
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
     >
-      <Index each={shapeStates}>{(state) => <Rect {...state()} />}</Index>
-      <Show when={selected().id}>
+      <Index each={shapeStates}>
+        {(state) => (
+          <Switch>
+            <Match when={state().type === "rect"}>
+              <Rect {...state()} />
+            </Match>
+            <Match when={state().type === "line"}>
+              <Line {...state()} />
+            </Match>
+          </Switch>
+        )}
+      </Index>
+      <Show when={selectedShape()}>
         <Resizer {...shapeStates[selectedShapeIdx()]} />
       </Show>
     </svg>
