@@ -1,4 +1,4 @@
-import { ShapeState } from "../../types";
+import { ShapeState } from "../../../types";
 
 interface LineProps extends ShapeState {}
 

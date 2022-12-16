@@ -1,4 +1,4 @@
-import { RectState } from "../../types";
+import { RectState } from "../../../types";
 
 interface RectProps extends RectState {}
 

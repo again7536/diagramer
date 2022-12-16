@@ -1,6 +1,7 @@
 import { createMemo } from "solid-js";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "../../storage";
+import { ShapeType } from "../../types";
 import styles from "./Menu.module.scss";
 
 const Menu = () => {
@@ -9,7 +10,7 @@ const Menu = () => {
     shapeStates.findIndex((s) => s.id === selected()?.id)
   );
 
-  const handleClickBtn = (type: "rect" | "line") => {
+  const handleClickBtn = (type: ShapeType) => {
     addShape({
       id: uuidv4(),
       type,
@@ -31,6 +32,7 @@ const Menu = () => {
     <div class={styles.menuContainer}>
       <button onClick={() => handleClickBtn("rect")}>rect</button>
       <button onClick={() => handleClickBtn("line")}>line</button>
+      <button onClick={() => handleClickBtn("circle")}>circle</button>
       <textarea
         style={{ height: "200px" }}
         value={shapeStates[selectedIdx()]?.css ?? ""}

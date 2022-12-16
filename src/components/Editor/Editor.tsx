@@ -8,11 +8,13 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import Rect from "../Rect/Rect";
+import Rect from "../Shapes/Rect/Rect";
 import Resizer from "../Resizer/Resizer";
 import { CIRCLE_CONFIG } from "../../constants";
 import { useStore } from "../../storage";
-import Line from "../Line/Line";
+import Line from "../Shapes/Line/Line";
+import Circle from "../Shapes/Circle/Circle";
+import { calcShapeState } from "../../utils/calcShapeState";
 
 interface DragPos {
   startX: number;
@@ -22,46 +24,6 @@ interface DragPos {
   initWidth: number;
   initHeight: number;
 }
-
-interface CalcShapeStateParams {
-  diffX: number;
-  diffY: number;
-  initX: number;
-  initY: number;
-  initWidth: number;
-  initHeight: number;
-  dx: number;
-  dy: number;
-  dwidth: number;
-  dheight: number;
-}
-
-const calcShapeState = ({
-  diffX,
-  diffY,
-  initX,
-  initY,
-  initWidth,
-  initHeight,
-  dx,
-  dy,
-  dwidth,
-  dheight,
-}: CalcShapeStateParams) => {
-  let x = dx * diffX + initX;
-  let y = dy * diffY + initY;
-  let width = dwidth * diffX + initWidth;
-  let height = dheight * diffY + initHeight;
-  if (width < 0) {
-    width = -width;
-    x = x - width;
-  }
-  if (height < 0) {
-    height = -height;
-    y = y - height;
-  }
-  return { x, y, width, height };
-};
 
 const Editor = () => {
   let svgRef: SVGSVGElement | undefined;
@@ -92,12 +54,10 @@ const Editor = () => {
 
   const handleMouseDown = (e: MouseEvent) => {
     const $target = e.target as SVGElement;
+    const shapeState = shapeStates[selectedShapeIdx()];
 
     setDrag(true);
     setSelected($target);
-    if ($target.classList[0] === "shape") setSelectedShape($target);
-
-    const shapeState = shapeStates[selectedShapeIdx()];
     setStartDim({
       startX: e.clientX,
       startY: e.clientY,
@@ -106,6 +66,8 @@ const Editor = () => {
       initWidth: shapeState?.width ?? 0,
       initHeight: shapeState?.height ?? 0,
     });
+
+    if ($target.classList[0] === "shape") setSelectedShape($target);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -169,6 +131,9 @@ const Editor = () => {
             </Match>
             <Match when={state().type === "line"}>
               <Line {...state()} />
+            </Match>
+            <Match when={state().type === "circle"}>
+              <Circle {...state()} />
             </Match>
           </Switch>
         )}

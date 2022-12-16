@@ -1,3 +1,5 @@
+import { ShapeType } from "../types";
+
 const CIRCLE_CONFIG = [
   {
     x: 0,
@@ -48,4 +50,10 @@ const CIRCLE_CONFIG = [
     resize: { dwidth: -1, dheight: 0, dx: 1, dy: 0 },
   },
 ];
-export { CIRCLE_CONFIG };
+
+const SHAPE_TYPES: { [key: string]: ShapeType } = {
+  RECT: "rect",
+  LINE: "line",
+  CIRCLE: "circle",
+};
+export { CIRCLE_CONFIG, SHAPE_TYPES };

@@ -1,6 +1,8 @@
+type ShapeType = "rect" | "line" | "circle";
+
 interface ShapeState {
   id: string;
-  type: "rect" | "line";
+  type: ShapeType;
   x: number;
   y: number;
   width: number;
@@ -10,4 +12,4 @@ interface ShapeState {
 
 interface RectState extends ShapeState {}
 
-export { ShapeState, RectState };
+export { ShapeState, RectState, ShapeType };
