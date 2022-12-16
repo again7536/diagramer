@@ -31,6 +31,8 @@ const Editor = () => {
     setSelectedShapeIds,
     setSelectedElem,
     setShapeOf,
+    resizeShapes,
+    moveShapes,
   } = useStore().shape;
   const [isDrag, setDrag] = createSignal<boolean>(false);
   const [selectorDim, setSelectorDim] = createSignal<Dimension>({
@@ -70,72 +72,9 @@ const Editor = () => {
       });
       return;
     }
-
-    if ($selectedElem.classList[0].startsWith("resizer")) {
-      const resizerIdx = +$selectedElem.classList[0].split("-")[1];
-      selectedShapeIds
-        .filter((id) => getShapeState(id).type !== "line")
-        .forEach((id) => {
-          const state = getShapeState(id);
-          setShapeOf(id, {
-            ...state,
-            cur: {
-              ...calcShapeState({
-                ...RESIZE_CIRCLE_CONFIG[resizerIdx].resize,
-                ...state.prev,
-                diffX,
-                diffY,
-              }),
-            },
-          });
-        });
-      selectedShapeIds
-        .filter((id) => getShapeState(id).type === "line")
-        .forEach((id) => {
-          const state = getShapeState(id);
-          setShapeOf(id, {
-            ...state,
-            cur: {
-              ...calcShapeState({
-                ...LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize,
-                ...state.prev,
-                diffX,
-                diffY,
-              }),
-            },
-          });
-        });
-    }
-
-    if ($selectedElem.classList[0] === "shape") {
-      selectedShapeIds
-        .filter((id) => getShapeState(id).type !== "line")
-        .forEach((id) => {
-          const state = getShapeState(id);
-          setShapeOf(id, {
-            ...state,
-            cur: {
-              ...state.cur,
-              x: diffX + state.prev.x,
-              y: diffY + state.prev.y,
-            },
-          });
-        });
-      selectedShapeIds
-        .filter((id) => getShapeState(id).type === "line")
-        .forEach((id) => {
-          const state = getShapeState(id);
-          setShapeOf(id, {
-            ...state,
-            cur: {
-              x: diffX + state.prev.x,
-              y: diffY + state.prev.y,
-              width: diffX + state.prev.width,
-              height: diffY + state.prev.height,
-            },
-          });
-        });
-    }
+    if ($selectedElem.classList[0].startsWith("resizer"))
+      resizeShapes({ diffX, diffY });
+    if ($selectedElem.classList[0] === "shape") moveShapes({ diffX, diffY });
   };
 
   const handleMouseUp = (e: MouseEvent) => {
