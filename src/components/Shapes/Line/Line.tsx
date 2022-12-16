@@ -6,7 +6,7 @@ const Line = (props: LineProps) => {
   return (
     <path
       id={props.id}
-      d={`M${props.x} ${props.y} l${props.width} ${props.height}`}
+      d={`M${props.cur.x} ${props.cur.y} L${props.cur.width} ${props.cur.height}`}
       class="shape"
       stroke="black"
       style={props.css}

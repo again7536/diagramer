@@ -1,14 +1,11 @@
-import { createMemo } from "solid-js";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "../../storage";
 import { ShapeType } from "../../types";
 import styles from "./Menu.module.scss";
 
 const Menu = () => {
-  const { shapeStates, selectedElem, addShape, setShapeOf } = useStore().shape;
-  const selectedIdx = createMemo(() =>
-    shapeStates.findIndex((s) => s.id === selectedElem()?.id)
-  );
+  const { selectedShapeIds, getShapeState, addShape, setShapeOf } =
+    useStore().shape;
 
   const handleClickBtn = (type: ShapeType) => {
     addShape({
@@ -30,11 +27,10 @@ const Menu = () => {
   };
   const handleChangeCss = (e: InputEvent) => {
     const $target = e.target as HTMLTextAreaElement;
-    setShapeOf($target.id, {
-      ...shapeStates[selectedIdx()],
+    setShapeOf(selectedShapeIds[0], {
+      ...getShapeState(selectedShapeIds[0]),
       css: $target.value,
     });
-    console.log(shapeStates[selectedIdx()].css);
   };
 
   return (
@@ -44,7 +40,7 @@ const Menu = () => {
       <button onClick={() => handleClickBtn("circle")}>circle</button>
       <textarea
         style={{ height: "200px" }}
-        value={shapeStates[selectedIdx()]?.css ?? ""}
+        value={getShapeState(selectedShapeIds[0])?.css ?? ""}
         oninput={handleChangeCss}
       />
     </div>

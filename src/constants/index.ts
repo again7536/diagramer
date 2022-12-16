@@ -1,6 +1,6 @@
 import { ShapeType } from "../types";
 
-const CIRCLE_CONFIG = [
+const RESIZE_CIRCLE_CONFIG = [
   {
     x: 0,
     y: 0,
@@ -51,9 +51,17 @@ const CIRCLE_CONFIG = [
   },
 ];
 
+const LINE_RESIZE_CIRCLE_CONFIG = [
+  {
+    cursor: "w-resize",
+    resize: { dwidth: 0, dheight: 0, dx: 1, dy: 1 },
+  },
+  { cursor: "e-resize", resize: { dwidth: 1, dheight: 1, dx: 0, dy: 0 } },
+];
+
 const SHAPE_TYPES: { [key: string]: ShapeType } = {
   RECT: "rect",
   LINE: "line",
   CIRCLE: "circle",
 };
-export { CIRCLE_CONFIG, SHAPE_TYPES };
+export { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG, SHAPE_TYPES };
