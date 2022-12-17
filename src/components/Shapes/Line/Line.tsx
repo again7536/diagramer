@@ -4,13 +4,16 @@ interface LineProps extends ShapeState {}
 
 const Line = (props: LineProps) => {
   return (
-    <path
+    <line
       id={props.id}
-      d={`M${props.cur.x} ${props.cur.y} L${props.cur.width} ${props.cur.height}`}
+      x1={props.cur.x}
+      y1={props.cur.y}
+      x2={props.cur.width}
+      y2={props.cur.height}
       class="shape"
       stroke="black"
       style={props.css}
-    ></path>
+    />
   );
 };
 

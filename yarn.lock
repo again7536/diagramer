@@ -1399,6 +1399,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kld-affine@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "kld-affine@npm:2.1.1"
+  checksum: 7c3841b920ac05d5f6a83c9e0b267c4fb35cf4458dbd3d3dd3b47949020e1683e4e0ba65b6d666904f870c5e33db01002bf6c138a0cdb6209055ed003b3c6052
+  languageName: node
+  linkType: hard
+
+"kld-intersections@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "kld-intersections@npm:0.7.0"
+  dependencies:
+    kld-affine: ^2.1.1
+    kld-path-parser: ^0.2.1
+    kld-polynomial: ^0.3.0
+  checksum: 2a5c0a96f5daf5bf39487d0b7db1842b29c5f17f4edf43240b79ad63b5111ebdc17aead5c69ad36d6c2ecfc254cdbd97b918844193eb765bc9bf4a3eb1f4190c
+  languageName: node
+  linkType: hard
+
+"kld-path-parser@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "kld-path-parser@npm:0.2.1"
+  checksum: e1e9bb482dd2b124b8912f5f30a017c7a97e5619f0eccb516b388f7beb8497f39a3483389ad2a304c31b3fd7bc329600f9788e9982c92d2d3958067e08358c61
+  languageName: node
+  linkType: hard
+
+"kld-polynomial@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "kld-polynomial@npm:0.3.0"
+  checksum: ee4ef684b9a0b5347fbccc4ada4c5236e5ddfcad800e89d9b616dd05e4310f2af5d36f44d685c52a230fb7bcc67bca119607488d38f688d5df2f9c74a56d2889
+  languageName: node
+  linkType: hard
+
 "lru-cache@npm:^6.0.0":
   version: 6.0.0
   resolution: "lru-cache@npm:6.0.0"
@@ -2085,6 +2117,7 @@ __metadata:
   resolution: "vite-template-solid@workspace:."
   dependencies:
     "@types/uuid": ^9.0.0
+    kld-intersections: ^0.7.0
     sass: ^1.56.2
     solid-js: ^1.5.1
     typescript: ^4.8.2

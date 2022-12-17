@@ -1,16 +1,12 @@
 import { createSignal, For, Index, Match, Show, Switch } from "solid-js";
 import Rect from "../Shapes/Rect/Rect";
 import Resizer from "../Resizer/Resizer";
-import {
-  LINE_RESIZE_CIRCLE_CONFIG,
-  RESIZE_CIRCLE_CONFIG,
-} from "../../constants";
 import { useStore } from "../../storage";
 import Line from "../Shapes/Line/Line";
-import Circle from "../Shapes/Circle/Circle";
-import { calcShapeState } from "../../utils/calcShapeState";
-import { Dimension } from "../../types";
+import Ellipse from "../Shapes/Ellipse/Ellipse";
+import { Dimension, ShapeState } from "../../types";
 import LineResizer from "../Resizer/LineResizer/LineResizer";
+import { SHAPE_TYPES } from "../../constants";
 
 interface DragStartDimension {
   startX: number;
@@ -63,16 +59,14 @@ const Editor = () => {
     const diffX = e.clientX - startDim().startX;
     const diffY = e.clientY - startDim().startY;
 
-    if ($selectedElem === svgRef) {
+    if ($selectedElem === svgRef)
       setSelectorDim({
         width: diffX,
         height: diffY,
         x: startDim().startX - (svgRef?.getBoundingClientRect().left ?? 0),
         y: startDim().startY - (svgRef?.getBoundingClientRect().top ?? 0),
       });
-      return;
-    }
-    if ($selectedElem.classList[0].startsWith("resizer"))
+    if ($selectedElem.classList[0]?.startsWith("resizer"))
       resizeShapes({ diffX, diffY });
     if ($selectedElem.classList[0] === "shape") moveShapes({ diffX, diffY });
   };
@@ -108,12 +102,13 @@ const Editor = () => {
 
     selectedShapeIds.forEach((id) => {
       const state = getShapeState(id);
-      setShapeOf(id, {
-        ...state,
-        prev: {
-          ...state.cur,
-        },
-      });
+      state &&
+        setShapeOf(id, {
+          ...state,
+          prev: {
+            ...state.cur,
+          },
+        });
     });
   };
 
@@ -130,14 +125,14 @@ const Editor = () => {
       <Index each={shapeStates}>
         {(state) => (
           <Switch>
-            <Match when={state().type === "rect"}>
+            <Match when={state().type === SHAPE_TYPES.RECT}>
               <Rect {...state()} />
             </Match>
-            <Match when={state().type === "line"}>
+            <Match when={state().type === SHAPE_TYPES.LINE}>
               <Line {...state()} />
             </Match>
-            <Match when={state().type === "circle"}>
-              <Circle {...state()} />
+            <Match when={state().type === SHAPE_TYPES.ELLIPSE}>
+              <Ellipse {...state()} />
             </Match>
           </Switch>
         )}
@@ -145,17 +140,20 @@ const Editor = () => {
       <For each={selectedShapeIds}>
         {(id) => (
           <Switch>
-            <Match when={getShapeState(id).type === "line"}>
-              <LineResizer {...getShapeState(id)} />
+            <Match when={getShapeState(id)?.type === "line"}>
+              <LineResizer {...(getShapeState(id) as ShapeState)} />
             </Match>
-            <Match when={getShapeState(id).type !== "line"}>
-              <Resizer {...getShapeState(id)} />
+            <Match when={getShapeState(id)?.type !== "line"}>
+              <Resizer {...(getShapeState(id) as ShapeState)} />
             </Match>
           </Switch>
         )}
       </For>
       <Show when={selectedElem() === svgRef}>
         <rect {...selectorDim()} fill="#0000ff30" />
+      </Show>
+      <Show when={getShapeState(selectedShapeIds[0])?.type === "line"}>
+        <path />
       </Show>
     </svg>
   );

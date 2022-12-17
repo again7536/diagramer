@@ -1,8 +1,8 @@
 import { ShapeState } from "../../../types";
 
-interface CircleProps extends ShapeState {}
+interface EllipseProps extends ShapeState {}
 
-const Circle = (props: CircleProps) => {
+const Ellipse = (props: EllipseProps) => {
   return (
     <ellipse
       id={props.id}
@@ -12,8 +12,8 @@ const Circle = (props: CircleProps) => {
       cy={props.cur.y + props.cur.height / 2}
       rx={props.cur.width / 2}
       ry={props.cur.height / 2}
-    ></ellipse>
+    />
   );
 };
 
-export default Circle;
+export default Ellipse;

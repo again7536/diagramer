@@ -8,8 +8,10 @@
     "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
+    "typeRoots": ["node_modules/@types", "src/utils"],
     "types": ["vite/client"],
     "noEmit": true,
     "isolatedModules": false
-  }
+  },
+  "include": ["src"]
 }

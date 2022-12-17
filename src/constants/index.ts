@@ -62,6 +62,6 @@ const LINE_RESIZE_CIRCLE_CONFIG = [
 const SHAPE_TYPES: { [key: string]: ShapeType } = {
   RECT: "rect",
   LINE: "line",
-  CIRCLE: "circle",
+  ELLIPSE: "ellipse",
 };
 export { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG, SHAPE_TYPES };

@@ -1,4 +1,4 @@
-type ShapeType = "rect" | "line" | "circle";
+type ShapeType = "rect" | "line" | "ellipse";
 
 interface Dimension {
   x: number;

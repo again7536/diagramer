@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { SHAPE_TYPES } from "../../constants";
 import { useStore } from "../../storage";
 import { ShapeType } from "../../types";
 import styles from "./Menu.module.scss";
@@ -27,17 +28,21 @@ const Menu = () => {
   };
   const handleChangeCss = (e: InputEvent) => {
     const $target = e.target as HTMLTextAreaElement;
-    setShapeOf(selectedShapeIds[0], {
-      ...getShapeState(selectedShapeIds[0]),
-      css: $target.value,
-    });
+    const state = getShapeState(selectedShapeIds[0]);
+    state &&
+      setShapeOf(selectedShapeIds[0], {
+        ...state,
+        css: $target.value,
+      });
   };
 
   return (
     <div class={styles.menuContainer}>
-      <button onClick={() => handleClickBtn("rect")}>rect</button>
-      <button onClick={() => handleClickBtn("line")}>line</button>
-      <button onClick={() => handleClickBtn("circle")}>circle</button>
+      <button onClick={() => handleClickBtn(SHAPE_TYPES.RECT)}>rect</button>
+      <button onClick={() => handleClickBtn(SHAPE_TYPES.LINE)}>line</button>
+      <button onClick={() => handleClickBtn(SHAPE_TYPES.ELLIPSE)}>
+        circle
+      </button>
       <textarea
         style={{ height: "200px" }}
         value={getShapeState(selectedShapeIds[0])?.css ?? ""}

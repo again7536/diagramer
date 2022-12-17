@@ -17,6 +17,7 @@
     "vite-plugin-solid": "^2.3.0"
   },
   "dependencies": {
+    "kld-intersections": "^0.7.0",
     "solid-js": "^1.5.1",
     "uuid": "^9.0.0"
   }
