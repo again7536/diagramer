@@ -2027,6 +2027,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"transformation-matrix@npm:^2.14.0":
+  version: 2.14.0
+  resolution: "transformation-matrix@npm:2.14.0"
+  checksum: cac764745b87109027d93c804c3441b27f2d02038478dc008702f8bc27aa2db3e8a16d2465c4f2ebe528a84313a78e41ce2c29a91eda49b6b8cc97debec3c25b
+  languageName: node
+  linkType: hard
+
 "typescript@npm:^4.8.2":
   version: 4.9.4
   resolution: "typescript@npm:4.9.4"
@@ -2120,6 +2127,7 @@ __metadata:
     kld-intersections: ^0.7.0
     sass: ^1.56.2
     solid-js: ^1.5.1
+    transformation-matrix: ^2.14.0
     typescript: ^4.8.2
     uuid: ^9.0.0
     vite: ^3.0.9

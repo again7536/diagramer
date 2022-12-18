@@ -1,4 +1,5 @@
 import { RectState } from "../../../types";
+import { getWidthHeight } from "../../../utils";
 
 interface RectProps extends RectState {}
 
@@ -7,11 +8,11 @@ const Rect = (props: RectProps) => {
     <rect
       id={props.id}
       class="shape"
-      width={props.cur.width}
-      height={props.cur.height}
+      width={getWidthHeight(props.cur).w}
+      height={getWidthHeight(props.cur).h}
       // x={props.cur.x}
       // y={props.cur.y}
-      transform={`translate(${props.cur.x}, ${props.cur.y})`}
+      transform={`translate(${props.cur.p1.x}, ${props.cur.p1.y})`}
       style={props.css ?? undefined}
     />
   );

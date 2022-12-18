@@ -1,13 +1,13 @@
-import { Dimension, ShapeType } from "../types";
+import { Area, ShapeType } from "../types";
 
 export declare function snapLine({
   shape,
-  shapeType,
   path,
+  shapeType,
   isXMoved,
 }: {
-  shape: Dimension;
+  shape: Area;
+  path: Area;
   shapeType: ShapeType;
-  path: Dimension;
   isXMoved: boolean;
 }): { x: number; y: number }[];

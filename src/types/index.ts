@@ -1,19 +1,21 @@
+import { Matrix } from "transformation-matrix";
+
 type ShapeType = "rect" | "line" | "ellipse";
 
-interface Dimension {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+interface Area {
+  p1: { x: number; y: number };
+  p2: { x: number; y: number };
 }
+
 interface ShapeState {
   id: string;
   type: ShapeType;
-  cur: Dimension;
-  prev: Dimension;
+  cur: Area;
+  prev: Area;
+  snapped: string[];
   css?: string;
 }
 
 interface RectState extends ShapeState {}
 
-export { ShapeState, RectState, ShapeType, Dimension };
+export { ShapeState, RectState, ShapeType, Area };

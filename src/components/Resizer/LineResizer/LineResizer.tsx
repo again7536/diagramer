@@ -9,8 +9,8 @@ const LineResizer = (props: LineResizerProps) => {
       <circle
         class="resizer-0"
         cursor={LINE_RESIZE_CIRCLE_CONFIG[0].cursor}
-        cx={props.cur.x}
-        cy={props.cur.y}
+        cx={props.cur.p1.x}
+        cy={props.cur.p1.y}
         r={3}
         fill="blue"
         stroke="skyblue"
@@ -19,8 +19,8 @@ const LineResizer = (props: LineResizerProps) => {
       <circle
         class="resizer-1"
         cursor={LINE_RESIZE_CIRCLE_CONFIG[1].cursor}
-        cx={props.cur.width}
-        cy={props.cur.height}
+        cx={props.cur.p2.x}
+        cy={props.cur.p2.y}
         r={3}
         fill="blue"
         stroke="skyblue"

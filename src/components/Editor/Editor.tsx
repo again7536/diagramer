@@ -4,13 +4,19 @@ import Resizer from "../Resizer/Resizer";
 import { useStore } from "../../storage";
 import Line from "../Shapes/Line/Line";
 import Ellipse from "../Shapes/Ellipse/Ellipse";
-import { Dimension, ShapeState } from "../../types";
+import { Area, ShapeState } from "../../types";
 import LineResizer from "../Resizer/LineResizer/LineResizer";
 import { SHAPE_TYPES } from "../../constants";
+import {
+  calcShapeResize,
+  getCenterPoint,
+  getWidthHeight,
+  pointSub,
+} from "../../utils";
 
 interface DragStartDimension {
-  startX: number;
-  startY: number;
+  x: number;
+  y: number;
 }
 
 const Editor = () => {
@@ -31,15 +37,13 @@ const Editor = () => {
     moveShapes,
   } = useStore().shape;
   const [isDrag, setDrag] = createSignal<boolean>(false);
-  const [selectorDim, setSelectorDim] = createSignal<Dimension>({
-    width: 0,
-    height: 0,
-    x: 0,
-    y: 0,
+  const [selectorDim, setSelectorDim] = createSignal<Area>({
+    p1: { x: 0, y: 0 },
+    p2: { x: 0, y: 0 },
   });
   const [startDim, setStartDim] = createSignal<DragStartDimension>({
-    startX: 0,
-    startY: 0,
+    x: 0,
+    y: 0,
   });
 
   const handleMouseDown = (e: MouseEvent) => {
@@ -48,27 +52,31 @@ const Editor = () => {
     setDrag(true);
     setSelectedElem($target);
     setStartDim({
-      startX: e.clientX,
-      startY: e.clientY,
+      x: e.clientX,
+      y: e.clientY,
     });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDrag() || !selectedElem()) return;
     const $selectedElem = selectedElem() as SVGElement;
-    const diffX = e.clientX - startDim().startX;
-    const diffY = e.clientY - startDim().startY;
+    const diffX = e.clientX - startDim().x;
+    const diffY = e.clientY - startDim().y;
 
+    const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
     if ($selectedElem === svgRef)
       setSelectorDim({
-        width: diffX,
-        height: diffY,
-        x: startDim().startX - (svgRef?.getBoundingClientRect().left ?? 0),
-        y: startDim().startY - (svgRef?.getBoundingClientRect().top ?? 0),
+        ...calcShapeResize({
+          p1: pointSub({ p1: startDim(), p2: boundingRect }),
+          p2: pointSub({ p1: startDim(), p2: boundingRect }),
+          diff: { x: diffX, y: diffY },
+          dir: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } },
+        }),
       });
     if ($selectedElem.classList[0]?.startsWith("resizer"))
-      resizeShapes({ diffX, diffY });
-    if ($selectedElem.classList[0] === "shape") moveShapes({ diffX, diffY });
+      resizeShapes({ x: diffX, y: diffY });
+    if ($selectedElem.classList[0] === "shape")
+      moveShapes({ x: diffX, y: diffY });
   };
 
   const handleMouseUp = (e: MouseEvent) => {
@@ -79,13 +87,12 @@ const Editor = () => {
     if ($selected === svgRef) {
       const filtered = shapeStates
         .filter((state) => {
-          const cx = state.cur.x + state.cur.width / 2;
-          const cy = state.cur.y + state.cur.height / 2;
+          const { x: cx, y: cy } = getCenterPoint(state.cur);
           if (
-            cx > selectorDim().x &&
-            cx < selectorDim().x + selectorDim().width &&
-            cy > selectorDim().y &&
-            cy < selectorDim().y + selectorDim().height
+            cx > selectorDim().p1.x &&
+            cx < selectorDim().p1.x + selectorDim().p2.x &&
+            cy > selectorDim().p1.y &&
+            cy < selectorDim().p1.y + selectorDim().p2.y
           )
             return state;
         })
@@ -96,7 +103,7 @@ const Editor = () => {
           undefined
       );
       setSelectedShapeIds(filtered);
-      setSelectorDim({ width: 0, height: 0, x: 0, y: 0 });
+      setSelectorDim({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } });
       return;
     }
 
@@ -150,7 +157,13 @@ const Editor = () => {
         )}
       </For>
       <Show when={selectedElem() === svgRef}>
-        <rect {...selectorDim()} fill="#0000ff30" />
+        <rect
+          x={selectorDim().p1.x}
+          y={selectorDim().p1.y}
+          width={getWidthHeight(selectorDim()).w}
+          height={getWidthHeight(selectorDim()).h}
+          fill="#0000ff30"
+        />
       </Show>
       <Show when={getShapeState(selectedShapeIds[0])?.type === "line"}>
         <path />

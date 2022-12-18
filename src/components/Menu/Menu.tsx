@@ -12,18 +12,9 @@ const Menu = () => {
     addShape({
       id: uuidv4(),
       type,
-      cur: {
-        x: 40,
-        y: 40,
-        width: 100,
-        height: 100,
-      },
-      prev: {
-        x: 40,
-        y: 40,
-        width: 100,
-        height: 100,
-      },
+      cur: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
+      prev: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
+      snapped: [],
     });
   };
   const handleChangeCss = (e: InputEvent) => {

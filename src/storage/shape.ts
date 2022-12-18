@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG } from "../constants";
 import { ShapeState } from "../types";
-import { calcShapeState } from "../utils/calcShapeState";
+import { calcMove, calcLineResize, calcShapeResize } from "../utils/calcShape";
 import { snapLine } from "../utils/calcSnap";
 
 const shapeStore = () => {
@@ -25,67 +25,73 @@ const shapeStore = () => {
     setShapeStates(produce((states) => (states[idToIdx()[id]] = nextState)));
   };
 
-  const resizeShapes = ({ diffX, diffY }: { diffX: number; diffY: number }) => {
+  const resizeShapes = (diff: { x: number; y: number }) => {
     const $selectedElem = selectedElem() as SVGElement;
     const resizerIdx = +$selectedElem.classList[0].split("-")[1];
+
+    // shape resize
     selectedShapeIds
       .filter((id) => getShapeState(id)?.type !== "line")
       .forEach((id) => {
         const state = getShapeState(id);
-        state &&
-          setShapeOf(id, {
-            ...state,
-            cur: {
-              ...calcShapeState({
-                ...RESIZE_CIRCLE_CONFIG[resizerIdx].resize,
-                ...state.prev,
-                diffX,
-                diffY,
-              }),
-            },
-          });
+        if (!state) return;
+
+        // const $shape = getShapeElem(state.id);
+        // state.snapped.forEach((snap) => {
+        //   const $snap = getShapeElem(snap);
+        // });
+
+        setShapeOf(id, {
+          ...state,
+          cur: calcShapeResize({
+            ...state.prev,
+            diff: { ...diff },
+            dir: { ...RESIZE_CIRCLE_CONFIG[resizerIdx].resize },
+          }),
+        });
       });
+
+    // line resize
     selectedShapeIds
       .filter((id) => getShapeState(id)?.type === "line")
       .forEach((id, _, arr) => {
         const state = getShapeState(id);
         if (!state) return;
 
-        const isXMoved = LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.dx > 0;
-        const nextDim = calcShapeState({
-          ...LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize,
+        const isXMoved = LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.p1.x > 0;
+        const nextDim = calcLineResize({
           ...state.prev,
-          diffX,
-          diffY,
+          diff: { ...diff },
+          dir: { ...LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize },
         });
 
-        // line snap
+        // line snap start
         if (arr.length === 1) {
           const intersections = shapeStates
             .filter((state) => state.id !== $selectedElem.id)
-            .reduce((acc: null | { x: number; y: number }[], state) => {
-              if (acc) return acc;
-              return snapLine({
-                shape: { ...state.cur },
-                shapeType: state.type,
-                path: { ...nextDim },
-                isXMoved,
-              });
-            }, null);
+            .reduce(
+              (acc: null | { x: number; y: number }[], state) =>
+                acc
+                  ? acc
+                  : snapLine({
+                      shape: { ...state.cur },
+                      shapeType: state.type,
+                      path: { ...nextDim },
+                      isXMoved,
+                    }),
+              null
+            );
           if (intersections?.[0]) {
             setShapeOf(id, {
               ...state,
               cur: isXMoved
-                ? { ...state.cur, ...intersections[0] }
-                : {
-                    ...state.cur,
-                    width: intersections[0].x,
-                    height: intersections[0].y,
-                  },
+                ? { ...state.cur, p1: { ...intersections[0] } }
+                : { ...state.cur, p2: { ...intersections[0] } },
             });
             return;
           }
         }
+        // line snap end
 
         setShapeOf(id, {
           ...state,
@@ -94,7 +100,8 @@ const shapeStore = () => {
       });
   };
 
-  const moveShapes = ({ diffX, diffY }: { diffX: number; diffY: number }) => {
+  const moveShapes = (diff: { x: number; y: number }) => {
+    // shape translation
     selectedShapeIds
       .filter((id) => getShapeState(id)?.type !== "line")
       .forEach((id) => {
@@ -102,13 +109,11 @@ const shapeStore = () => {
         state &&
           setShapeOf(id, {
             ...state,
-            cur: {
-              ...state.cur,
-              x: diffX + state.prev.x,
-              y: diffY + state.prev.y,
-            },
+            cur: { ...calcMove({ ...state.prev, diff: { ...diff } }) },
           });
       });
+
+    // line translation
     selectedShapeIds
       .filter((id) => getShapeState(id)?.type === "line")
       .forEach((id) => {
@@ -116,12 +121,7 @@ const shapeStore = () => {
         state &&
           setShapeOf(id, {
             ...state,
-            cur: {
-              x: diffX + state.prev.x,
-              y: diffY + state.prev.y,
-              width: diffX + state.prev.width,
-              height: diffY + state.prev.height,
-            },
+            cur: { ...calcMove({ ...state.prev, diff: { ...diff } }) },
           });
       });
   };
