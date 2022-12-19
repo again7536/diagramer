@@ -109,13 +109,27 @@ const Editor = () => {
 
     selectedShapeIds.forEach((id) => {
       const state = getShapeState(id);
-      state &&
-        setShapeOf(id, {
-          ...state,
+      if (!state) return;
+
+      // confirm snapped line start
+      Object.entries(state.snapped).forEach(([snapId, snapResizerIdx]) => {
+        const snapState = getShapeState(snapId);
+        if (!snapState) return;
+        setShapeOf(snapId, {
+          ...snapState,
           prev: {
-            ...state.cur,
+            ...snapState.cur,
           },
         });
+      });
+      // confirm snapped line end
+
+      setShapeOf(id, {
+        ...state,
+        prev: {
+          ...state.cur,
+        },
+      });
     });
   };
 

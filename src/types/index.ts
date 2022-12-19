@@ -12,7 +12,7 @@ interface ShapeState {
   type: ShapeType;
   cur: Area;
   prev: Area;
-  snapped: string[];
+  snapped: { [id: string]: number };
   css?: string;
 }
 
