@@ -186,6 +186,33 @@ const shapeStore = () => {
       });
   };
 
+  const confirmShapes = () => {
+    selectedShapeIds.forEach((id) => {
+      const state = getShapeState(id);
+      if (!state) return;
+
+      // confirm snapped line start
+      Object.entries(state.snapped).forEach(([snapId, snapResizerIdx]) => {
+        const snapState = getShapeState(snapId);
+        if (!snapState) return;
+        setShapeOf(snapId, {
+          ...snapState,
+          prev: {
+            ...snapState.cur,
+          },
+        });
+      });
+      // confirm snapped line end
+
+      setShapeOf(id, {
+        ...state,
+        prev: {
+          ...state.cur,
+        },
+      });
+    });
+  };
+
   return {
     shapeStates,
     selectedElem,
@@ -195,6 +222,7 @@ const shapeStore = () => {
     setShapeOf,
     resizeShapes,
     moveShapes,
+    confirmShapes,
     setSelectedElem,
     setSelectedShapeIds,
   };

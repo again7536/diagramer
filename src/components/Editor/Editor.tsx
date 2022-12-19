@@ -32,7 +32,7 @@ const Editor = () => {
     getShapeState,
     setSelectedShapeIds,
     setSelectedElem,
-    setShapeOf,
+    confirmShapes,
     resizeShapes,
     moveShapes,
   } = useStore().shape;
@@ -81,7 +81,6 @@ const Editor = () => {
 
   const handleMouseUp = (e: MouseEvent) => {
     const $selected = selectedElem() as SVGElement;
-
     setDrag(false);
 
     if ($selected === svgRef) {
@@ -90,9 +89,9 @@ const Editor = () => {
           const { x: cx, y: cy } = getCenterPoint(state.cur);
           if (
             cx > selectorDim().p1.x &&
-            cx < selectorDim().p1.x + selectorDim().p2.x &&
+            cx < selectorDim().p2.x &&
             cy > selectorDim().p1.y &&
-            cy < selectorDim().p1.y + selectorDim().p2.y
+            cy < selectorDim().p2.y
           )
             return state;
         })
@@ -107,30 +106,7 @@ const Editor = () => {
       return;
     }
 
-    selectedShapeIds.forEach((id) => {
-      const state = getShapeState(id);
-      if (!state) return;
-
-      // confirm snapped line start
-      Object.entries(state.snapped).forEach(([snapId, snapResizerIdx]) => {
-        const snapState = getShapeState(snapId);
-        if (!snapState) return;
-        setShapeOf(snapId, {
-          ...snapState,
-          prev: {
-            ...snapState.cur,
-          },
-        });
-      });
-      // confirm snapped line end
-
-      setShapeOf(id, {
-        ...state,
-        prev: {
-          ...state.cur,
-        },
-      });
-    });
+    confirmShapes();
   };
 
   return (
