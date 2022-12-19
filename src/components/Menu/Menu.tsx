@@ -14,7 +14,6 @@ const Menu = () => {
       type,
       cur: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
       prev: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
-      snapped: {},
     });
   };
   const handleChangeCss = (e: InputEvent) => {

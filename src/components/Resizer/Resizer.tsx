@@ -3,7 +3,9 @@ import { ShapeState } from "../../types";
 import { RESIZE_CIRCLE_CONFIG } from "../../constants";
 import { getWidthHeight } from "../../utils";
 
-interface ResizerProps extends ShapeState {}
+interface ResizerProps extends ShapeState {
+  scale: number;
+}
 
 const CIRCLE_COUNT = 8;
 
@@ -20,10 +22,10 @@ const Resizer = (props: ResizerProps) => {
             class={`resizer-${i()}`}
             cx={getWidthHeight(props.cur).w * RESIZE_CIRCLE_CONFIG[i()].x}
             cy={getWidthHeight(props.cur).h * RESIZE_CIRCLE_CONFIG[i()].y}
-            r={3}
+            r={3 / props.scale}
             fill="blue"
             stroke="skyblue"
-            stroke-width={3}
+            stroke-width={3 / props.scale}
             style={{ cursor: RESIZE_CIRCLE_CONFIG[i()].cursor }}
           />
         )}

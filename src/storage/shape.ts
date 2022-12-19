@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG } from "../constants";
+import { RESIZE_CIRCLE_CONFIG } from "../constants";
 import { ShapeState, Snap } from "../types";
 import immer from "immer";
 import { merge } from "lodash";

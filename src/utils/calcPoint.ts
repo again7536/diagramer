@@ -35,6 +35,9 @@ function pointAdd({ p1, p2 }: Area) {
 function pointMul({ p1, p2 }: Area) {
   return { x: p1.x * p2.x, y: p1.y * p2.y };
 }
+function pointDiv({ p1, p2 }: Area) {
+  return { x: p1.x / p2.x, y: p1.y / p2.y };
+}
 
 function getWidthHeight(area: Area) {
   return { w: area.p2.x - area.p1.x, h: area.p2.y - area.p1.y };
@@ -47,6 +50,7 @@ export {
   pointSub,
   pointAdd,
   pointMul,
+  pointDiv,
   getWidthHeight,
   getCenterPoint,
   applyResizeToPoint,

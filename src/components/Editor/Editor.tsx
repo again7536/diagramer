@@ -11,6 +11,8 @@ import {
   calcShapeResize,
   getCenterPoint,
   getWidthHeight,
+  pointAdd,
+  pointMul,
   pointSub,
 } from "../../utils";
 
@@ -18,6 +20,8 @@ interface DragStartDimension {
   x: number;
   y: number;
 }
+
+const SVG_SIZE = { x: 600, y: 600 };
 
 const Editor = () => {
   let svgRef: SVGSVGElement | undefined;
@@ -36,7 +40,12 @@ const Editor = () => {
     resizeShapes,
     moveShapes,
   } = useStore().shape;
+  const [isPan, setPan] = createSignal<boolean>(true);
   const [isDrag, setDrag] = createSignal<boolean>(false);
+  const [viewBox, setViewBox] = createSignal<{ prev: Area; cur: Area }>({
+    cur: { p1: { x: 0, y: 0 }, p2: SVG_SIZE },
+    prev: { p1: { x: 0, y: 0 }, p2: SVG_SIZE },
+  });
   const [selectorDim, setSelectorDim] = createSignal<Area>({
     p1: { x: 0, y: 0 },
     p2: { x: 0, y: 0 },
@@ -45,6 +54,34 @@ const Editor = () => {
     x: 0,
     y: 0,
   });
+
+  const scale = () => SVG_SIZE.x / getWidthHeight(viewBox().cur).w;
+
+  const handleWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const diff = {
+      x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaY) * 0.05,
+      y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.05,
+    };
+    const ratio = {
+      x: e.offsetX / SVG_SIZE.x,
+      y: e.offsetY / SVG_SIZE.y,
+    };
+    const nextViewBox = {
+      p1: pointAdd({
+        p1: viewBox().cur.p1,
+        p2: pointMul({ p1: diff, p2: ratio }),
+      }),
+      p2: pointSub({
+        p1: viewBox().cur.p2,
+        p2: pointMul({
+          p1: diff,
+          p2: pointSub({ p1: { x: 1, y: 1 }, p2: ratio }),
+        }),
+      }),
+    };
+    setViewBox({ cur: nextViewBox, prev: nextViewBox });
+  };
 
   const handleMouseDown = (e: MouseEvent) => {
     const $target = e.target as SVGElement;
@@ -60,23 +97,34 @@ const Editor = () => {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDrag() || !selectedElem()) return;
     const $selectedElem = selectedElem() as SVGElement;
-    const diffX = e.clientX - startDim().x;
-    const diffY = e.clientY - startDim().y;
+    const diff = {
+      x: (e.clientX - startDim().x) / scale(),
+      y: (e.clientY - startDim().y) / scale(),
+    };
 
-    const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
-    if ($selectedElem === svgRef)
+    if ($selectedElem === svgRef) {
+      if (isPan()) {
+        setViewBox({
+          ...viewBox(),
+          cur: {
+            p1: pointAdd({ p1: viewBox().prev.p1, p2: diff }),
+            p2: pointAdd({ p1: viewBox().prev.p2, p2: diff }),
+          },
+        });
+        return;
+      }
+      const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
       setSelectorDim({
         ...calcShapeResize({
           p1: pointSub({ p1: startDim(), p2: boundingRect }),
           p2: pointSub({ p1: startDim(), p2: boundingRect }),
-          diff: { x: diffX, y: diffY },
+          diff,
           dir: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } },
         }),
       });
-    if ($selectedElem.classList[0]?.startsWith("resizer"))
-      resizeShapes({ x: diffX, y: diffY });
-    if ($selectedElem.classList[0] === "shape")
-      moveShapes({ x: diffX, y: diffY });
+    }
+    if ($selectedElem.classList[0]?.startsWith("resizer")) resizeShapes(diff);
+    if ($selectedElem.classList[0] === "shape") moveShapes(diff);
   };
 
   const handleMouseUp = (e: MouseEvent) => {
@@ -84,6 +132,8 @@ const Editor = () => {
     setDrag(false);
 
     if ($selected === svgRef) {
+      if (isPan()) setViewBox({ ...viewBox(), prev: viewBox().cur });
+
       const filtered = shapeStates
         .filter((state) => {
           const { x: cx, y: cy } = getCenterPoint(state.cur);
@@ -105,19 +155,21 @@ const Editor = () => {
       setSelectorDim({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } });
       return;
     }
-
     confirmShapes();
   };
 
   return (
     <svg
       ref={svgRef}
-      width="600"
-      height="600"
-      viewBox="0 0 600 600"
+      width={SVG_SIZE.x}
+      height={SVG_SIZE.y}
+      viewBox={`${viewBox().cur.p1.x} ${viewBox().cur.p1.y} ${
+        getWidthHeight(viewBox().cur).w
+      } ${getWidthHeight(viewBox().cur).h}`}
       onmousedown={handleMouseDown}
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
+      onWheel={handleWheel}
     >
       <Index each={shapeStates}>
         {(state) => (
@@ -138,10 +190,13 @@ const Editor = () => {
         {(id) => (
           <Switch>
             <Match when={getShapeState(id)?.type === "line"}>
-              <LineResizer {...(getShapeState(id) as ShapeState)} />
+              <LineResizer
+                {...(getShapeState(id) as ShapeState)}
+                scale={scale()}
+              />
             </Match>
             <Match when={getShapeState(id)?.type !== "line"}>
-              <Resizer {...(getShapeState(id) as ShapeState)} />
+              <Resizer {...(getShapeState(id) as ShapeState)} scale={scale()} />
             </Match>
           </Switch>
         )}
