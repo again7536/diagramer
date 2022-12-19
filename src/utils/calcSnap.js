@@ -1,6 +1,6 @@
 import { ShapeInfo, Intersection } from "kld-intersections";
 import { SHAPE_TYPES } from "../constants";
-import { getCenterPoint, getWidthHeight } from "./calcShape";
+import { getCenterPoint, getWidthHeight } from "./calcPoint";
 
 const SNAP_LENGTH = 30;
 

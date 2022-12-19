@@ -12,10 +12,18 @@ interface ShapeState {
   type: ShapeType;
   cur: Area;
   prev: Area;
-  snapped: { [id: string]: number };
   css?: string;
 }
 
+type Snap = {
+  [id: string]:
+    | {
+        snapping: { [idx: number]: string };
+        snapped: { [id: string]: number };
+      }
+    | undefined;
+};
+
 interface RectState extends ShapeState {}
 
-export { ShapeState, RectState, ShapeType, Area };
+export { ShapeState, RectState, ShapeType, Snap, Area };
