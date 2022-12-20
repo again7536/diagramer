@@ -22,6 +22,7 @@
     "kld-intersections": "^0.7.0",
     "lodash": "^4.17.21",
     "solid-js": "^1.5.1",
+    "solid-styled-components": "^0.28.5",
     "transformation-matrix": "^2.14.0",
     "uuid": "^9.0.0"
   }

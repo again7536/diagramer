@@ -1177,6 +1177,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"goober@npm:^2.1.10":
+  version: 2.1.11
+  resolution: "goober@npm:2.1.11"
+  peerDependencies:
+    csstype: ^3.0.10
+  checksum: c37c14f476f65f7c66d94ac1a1686a130b4fa42fc512175444e3c708fa1815f6ea579e1b23567e57d41de2e62ff8b5913915ec829f05a3b995d1a7a0016c0bdf
+  languageName: node
+  linkType: hard
+
 "graceful-fs@npm:^4.2.6":
   version: 4.2.10
   resolution: "graceful-fs@npm:4.2.10"
@@ -1957,6 +1966,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"solid-styled-components@npm:^0.28.5":
+  version: 0.28.5
+  resolution: "solid-styled-components@npm:0.28.5"
+  dependencies:
+    csstype: ^3.1.0
+    goober: ^2.1.10
+  peerDependencies:
+    solid-js: ^1.4.4
+  checksum: e58095582275b2e33b4a7ba975e464cc414125b304ad3fd91f36397552ebb305b05629f6ba4ec631839b5aca2cf0cf622028ca9885b67f21df96f1c35526d972
+  languageName: node
+  linkType: hard
+
 "source-map-js@npm:>=0.6.2 <2.0.0, source-map-js@npm:^1.0.2":
   version: 1.0.2
   resolution: "source-map-js@npm:1.0.2"
@@ -2151,6 +2172,7 @@ __metadata:
     lodash: ^4.17.21
     sass: ^1.56.2
     solid-js: ^1.5.1
+    solid-styled-components: ^0.28.5
     transformation-matrix: ^2.14.0
     typescript: ^4.8.2
     uuid: ^9.0.0
