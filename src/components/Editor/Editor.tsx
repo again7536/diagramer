@@ -40,7 +40,6 @@ const Editor = () => {
     resizeShapes,
     moveShapes,
   } = useStore().shape;
-  const [isPan, setPan] = createSignal<boolean>(true);
   const [isDrag, setDrag] = createSignal<boolean>(false);
   const [viewBox, setViewBox] = createSignal<{ prev: Area; cur: Area }>({
     cur: { p1: { x: 0, y: 0 }, p2: SVG_SIZE },
@@ -59,28 +58,42 @@ const Editor = () => {
 
   const handleWheel = (e: WheelEvent) => {
     e.preventDefault();
-    const diff = {
-      x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaY) * 0.05,
-      y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.05,
-    };
-    const ratio = {
-      x: e.offsetX / SVG_SIZE.x,
-      y: e.offsetY / SVG_SIZE.y,
-    };
-    const nextViewBox = {
-      p1: pointAdd({
-        p1: viewBox().cur.p1,
-        p2: pointMul({ p1: diff, p2: ratio }),
-      }),
-      p2: pointSub({
-        p1: viewBox().cur.p2,
-        p2: pointMul({
-          p1: diff,
-          p2: pointSub({ p1: { x: 1, y: 1 }, p2: ratio }),
+    if (e.ctrlKey) {
+      const diff = {
+        x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaY) * 0.05,
+        y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.05,
+      };
+      const ratio = {
+        x: e.offsetX / SVG_SIZE.x,
+        y: e.offsetY / SVG_SIZE.y,
+      };
+      const nextViewBox = {
+        p1: pointAdd({
+          p1: viewBox().cur.p1,
+          p2: pointMul({ p1: diff, p2: ratio }),
         }),
-      }),
-    };
-    setViewBox({ cur: nextViewBox, prev: nextViewBox });
+        p2: pointSub({
+          p1: viewBox().cur.p2,
+          p2: pointMul({
+            p1: diff,
+            p2: pointSub({ p1: { x: 1, y: 1 }, p2: ratio }),
+          }),
+        }),
+      };
+      setViewBox({ cur: nextViewBox, prev: nextViewBox });
+    } else {
+      const diff = {
+        x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaX) * 0.01,
+        y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.01,
+      };
+      setViewBox({
+        ...viewBox(),
+        cur: {
+          p1: pointAdd({ p1: viewBox().cur.p1, p2: diff }),
+          p2: pointAdd({ p1: viewBox().cur.p2, p2: diff }),
+        },
+      });
+    }
   };
 
   const handleMouseDown = (e: MouseEvent) => {
@@ -103,16 +116,6 @@ const Editor = () => {
     };
 
     if ($selectedElem === svgRef) {
-      if (isPan()) {
-        setViewBox({
-          ...viewBox(),
-          cur: {
-            p1: pointAdd({ p1: viewBox().prev.p1, p2: diff }),
-            p2: pointAdd({ p1: viewBox().prev.p2, p2: diff }),
-          },
-        });
-        return;
-      }
       const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
       setSelectorDim({
         ...calcShapeResize({
@@ -132,8 +135,6 @@ const Editor = () => {
     setDrag(false);
 
     if ($selected === svgRef) {
-      if (isPan()) setViewBox({ ...viewBox(), prev: viewBox().cur });
-
       const filtered = shapeStates
         .filter((state) => {
           const { x: cx, y: cy } = getCenterPoint(state.cur);
@@ -166,21 +167,23 @@ const Editor = () => {
       viewBox={`${viewBox().cur.p1.x} ${viewBox().cur.p1.y} ${
         getWidthHeight(viewBox().cur).w
       } ${getWidthHeight(viewBox().cur).h}`}
+      overflow="scroll"
       onmousedown={handleMouseDown}
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onWheel={handleWheel}
+      ontouchmove={console.log}
     >
       <Index each={shapeStates}>
         {(state) => (
           <Switch>
-            <Match when={state().type === SHAPE_TYPES.RECT}>
+            <Match when={state().type === SHAPE_TYPES.RECT.name}>
               <Rect {...state()} />
             </Match>
-            <Match when={state().type === SHAPE_TYPES.LINE}>
+            <Match when={state().type === SHAPE_TYPES.LINE.name}>
               <Line {...state()} />
             </Match>
-            <Match when={state().type === SHAPE_TYPES.ELLIPSE}>
+            <Match when={state().type === SHAPE_TYPES.ELLIPSE.name}>
               <Ellipse {...state()} />
             </Match>
           </Switch>

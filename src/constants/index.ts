@@ -59,9 +59,9 @@ const LINE_RESIZE_CIRCLE_CONFIG = [
   { cursor: "e-resize", resize: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } } },
 ];
 
-const SHAPE_TYPES: { [key: string]: ShapeType } = {
-  RECT: "rect",
-  LINE: "line",
-  ELLIPSE: "ellipse",
+const SHAPE_TYPES: { [key: string]: { name: ShapeType; icon: string } } = {
+  RECT: { name: "rect", icon: "fa-solid fa-square" },
+  LINE: { name: "line", icon: "fa-solid fa-minus" },
+  ELLIPSE: { name: "ellipse", icon: "fa-solid fa-circle" },
 };
 export { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG, SHAPE_TYPES };

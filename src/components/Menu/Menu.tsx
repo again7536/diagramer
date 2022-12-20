@@ -1,8 +1,11 @@
+import { For } from "solid-js";
 import { v4 as uuidv4 } from "uuid";
 import { SHAPE_TYPES } from "../../constants";
 import { useStore } from "../../storage";
 import { ShapeType } from "../../types";
-import styles from "./Menu.module.scss";
+import { IconButton } from "../Button/IconButton/IconButton";
+import Input from "../Input/Input";
+import * as S from "./Menu.style";
 
 const Menu = () => {
   const { selectedShapeIds, getShapeState, addShape, setShapeOf } =
@@ -27,18 +30,31 @@ const Menu = () => {
   };
 
   return (
-    <div class={styles.menuContainer}>
-      <button onClick={() => handleClickBtn(SHAPE_TYPES.RECT)}>rect</button>
-      <button onClick={() => handleClickBtn(SHAPE_TYPES.LINE)}>line</button>
-      <button onClick={() => handleClickBtn(SHAPE_TYPES.ELLIPSE)}>
-        circle
-      </button>
-      <textarea
-        style={{ height: "200px" }}
-        value={getShapeState(selectedShapeIds[0])?.css ?? ""}
-        oninput={handleChangeCss}
-      />
-    </div>
+    <S.MenuContainer>
+      <div>
+        <S.MenuSubheader>shapes</S.MenuSubheader>
+        <For each={Object.values(SHAPE_TYPES)}>
+          {(type) => (
+            <IconButton
+              icon={type.icon}
+              onClick={() => {
+                handleClickBtn(type.name);
+              }}
+            />
+          )}
+        </For>
+      </div>
+
+      <div>
+        <S.MenuSubheader>styles</S.MenuSubheader>
+        <Input
+          type="textarea"
+          style={{ "padding-bottom": "200px" }}
+          value={getShapeState(selectedShapeIds[0])?.css ?? ""}
+          oninput={handleChangeCss}
+        />
+      </div>
+    </S.MenuContainer>
   );
 };
 
