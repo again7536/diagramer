@@ -1,6 +1,6 @@
 import { Matrix } from "transformation-matrix";
 
-type ShapeType = "rect" | "line" | "ellipse";
+type ShapeType = "rect" | "line" | "ellipse" | "g";
 
 interface Area {
   p1: { x: number; y: number };
@@ -12,6 +12,7 @@ interface ShapeState {
   type: ShapeType;
   cur: Area;
   prev: Area;
+  children: ShapeState[];
   css?: string;
 }
 

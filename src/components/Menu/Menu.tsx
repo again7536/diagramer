@@ -5,10 +5,11 @@ import { useStore } from "../../storage";
 import { ShapeType } from "../../types";
 import { IconButton } from "../Button/IconButton/IconButton";
 import Input from "../Input/Input";
+import { RecursiveShapeDrawer } from "../Drawer";
 import * as S from "./Menu.style";
 
 const Menu = () => {
-  const { selectedShapeIds, getShapeState, addShape, setShapeOf } =
+  const { shapeStates, selectedShapeIds, getShapeState, addShape, setShapeOf } =
     useStore().shape;
 
   const handleClickBtn = (type: ShapeType) => {
@@ -17,6 +18,7 @@ const Menu = () => {
       type,
       cur: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
       prev: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
+      children: [],
     });
   };
   const handleChangeCss = (e: InputEvent) => {
@@ -54,6 +56,8 @@ const Menu = () => {
           oninput={handleChangeCss}
         />
       </div>
+
+      <RecursiveShapeDrawer shapeStates={shapeStates} />
     </S.MenuContainer>
   );
 };

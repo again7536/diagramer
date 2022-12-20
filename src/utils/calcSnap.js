@@ -23,7 +23,7 @@ function snapLine({ shape, shapeType, isXMoved, path }) {
   const pathInfo = ShapeInfo.line(snapLine);
 
   let shapeInfo;
-  if (shapeType === SHAPE_TYPES.RECT) {
+  if (shapeType === SHAPE_TYPES.RECT.name) {
     shapeInfo = ShapeInfo.rectangle({
       top: shape.p1.y,
       left: shape.p1.x,
@@ -31,7 +31,7 @@ function snapLine({ shape, shapeType, isXMoved, path }) {
       height: getWidthHeight(shape).h,
     });
   }
-  if (shapeType === SHAPE_TYPES.ELLIPSE) {
+  if (shapeType === SHAPE_TYPES.ELLIPSE.name) {
     shapeInfo = ShapeInfo.ellipse({
       centerX: getCenterPoint(shape).x,
       centerY: getCenterPoint(shape).y,
