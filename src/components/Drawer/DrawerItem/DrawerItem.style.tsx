@@ -8,7 +8,8 @@ const DrawerItemContainer = styled("div")`
   text-align: left;
 
   width: 100%;
-  height: 40px;
+  height: 35px;
+  padding: 0 5px;
   transition: 0.1s;
 
   &:hover {
@@ -16,7 +17,8 @@ const DrawerItemContainer = styled("div")`
   }
 
   i {
-    font-size: 24px;
+    width: 15px;
+    font-size: 12px;
     padding-right: 5px;
   }
 `;

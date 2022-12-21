@@ -9,7 +9,7 @@ interface DrawerItemProps {
 
 const DrawerItem = (props: DrawerItemProps) => {
   return (
-    <S.DrawerItemContainer ref={props.ref}>
+    <S.DrawerItemContainer ref={props.ref} draggable>
       <i class={props.icon} />
       {props.children}
     </S.DrawerItemContainer>

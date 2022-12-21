@@ -65,4 +65,14 @@ const SHAPE_TYPES: { [key: string]: { name: ShapeType; icon: string } } = {
   ELLIPSE: { name: "ellipse", icon: "fa-solid fa-circle" },
   GROUP: { name: "g", icon: "fa-solid fa-object-group" },
 };
-export { RESIZE_CIRCLE_CONFIG, LINE_RESIZE_CIRCLE_CONFIG, SHAPE_TYPES };
+
+const TREE_ROOT_ID = "root";
+const TREE_ROOT_IDX = 0;
+
+export {
+  RESIZE_CIRCLE_CONFIG,
+  LINE_RESIZE_CIRCLE_CONFIG,
+  SHAPE_TYPES,
+  TREE_ROOT_ID,
+  TREE_ROOT_IDX,
+};

@@ -12,7 +12,8 @@ interface ShapeState {
   type: ShapeType;
   cur: Area;
   prev: Area;
-  children: ShapeState[];
+  children: (() => ShapeState)[];
+  parent: (() => ShapeState) | null;
   css?: string;
 }
 

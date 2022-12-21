@@ -3,8 +3,10 @@ import { styled } from "solid-styled-components";
 const MenuContainer = styled("div")`
   display: flex;
   flex-direction: column;
+  gap: 10px 0;
 
   height: 100%;
+  padding: 5px 10px;
 
   background-color: ${({ theme }) => theme?.colors.background};
 `;

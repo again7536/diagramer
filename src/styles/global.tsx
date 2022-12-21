@@ -24,6 +24,7 @@ const GlobalStyles = () => {
     html,
     body {
       font-family: 'LINESeedKR';
+      margin: 0;
     }
 
     * {

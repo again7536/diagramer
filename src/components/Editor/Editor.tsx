@@ -6,7 +6,7 @@ import Line from "../Shapes/Line/Line";
 import Ellipse from "../Shapes/Ellipse/Ellipse";
 import { Area, ShapeState } from "../../types";
 import LineResizer from "../Resizer/LineResizer/LineResizer";
-import { SHAPE_TYPES } from "../../constants";
+import { SHAPE_TYPES, TREE_ROOT_ID } from "../../constants";
 import {
   calcShapeResize,
   getCenterPoint,
@@ -15,6 +15,7 @@ import {
   pointMul,
   pointSub,
 } from "../../utils";
+import Renderer from "./Renderer/Renderer";
 
 interface DragStartDimension {
   x: number;
@@ -119,8 +120,14 @@ const Editor = () => {
       const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
       setSelectorDim({
         ...calcShapeResize({
-          p1: pointSub({ p1: startDim(), p2: boundingRect }),
-          p2: pointSub({ p1: startDim(), p2: boundingRect }),
+          p1: pointSub({
+            p1: startDim(),
+            p2: { x: boundingRect.left, y: boundingRect.top },
+          }),
+          p2: pointSub({
+            p1: startDim(),
+            p2: { x: boundingRect.left, y: boundingRect.top },
+          }),
           diff,
           dir: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } },
         }),
@@ -174,31 +181,17 @@ const Editor = () => {
       onWheel={handleWheel}
       ontouchmove={console.log}
     >
-      <Index each={shapeStates}>
-        {(state) => (
-          <Switch>
-            <Match when={state().type === SHAPE_TYPES.RECT.name}>
-              <Rect {...state()} />
-            </Match>
-            <Match when={state().type === SHAPE_TYPES.LINE.name}>
-              <Line {...state()} />
-            </Match>
-            <Match when={state().type === SHAPE_TYPES.ELLIPSE.name}>
-              <Ellipse {...state()} />
-            </Match>
-          </Switch>
-        )}
-      </Index>
+      <Renderer parentId={TREE_ROOT_ID} getShapeState={getShapeState} />
       <For each={selectedShapeIds}>
         {(id) => (
           <Switch>
-            <Match when={getShapeState(id)?.type === "line"}>
+            <Match when={getShapeState(id).type === "line"}>
               <LineResizer
                 {...(getShapeState(id) as ShapeState)}
                 scale={scale()}
               />
             </Match>
-            <Match when={getShapeState(id)?.type !== "line"}>
+            <Match when={getShapeState(id).type !== "line"}>
               <Resizer {...(getShapeState(id) as ShapeState)} scale={scale()} />
             </Match>
           </Switch>
@@ -213,7 +206,12 @@ const Editor = () => {
           fill="#0000ff30"
         />
       </Show>
-      <Show when={getShapeState(selectedShapeIds[0])?.type === "line"}>
+      <Show
+        when={
+          selectedShapeIds[0] &&
+          getShapeState(selectedShapeIds[0]).type === "line"
+        }
+      >
         <path />
       </Show>
     </svg>
