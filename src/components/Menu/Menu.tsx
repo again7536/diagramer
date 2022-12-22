@@ -20,6 +20,8 @@ const Menu = () => {
       prev: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
       children: [],
       parent: () => getShapeState(TREE_ROOT_ID),
+      snapping: {},
+      snapped: {},
     });
   };
   const handleChangeCss = (e: InputEvent) => {

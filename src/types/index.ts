@@ -14,6 +14,8 @@ interface ShapeState {
   prev: Area;
   children: (() => ShapeState)[];
   parent: (() => ShapeState) | null;
+  snapping: { [idx: number]: string };
+  snapped: { [id: string]: number };
   css?: string;
 }
 
@@ -28,4 +30,4 @@ type Snap = {
 
 interface RectState extends ShapeState {}
 
-export { ShapeState, RectState, ShapeType, Snap, Area };
+export { ShapeState, RectState, ShapeType, Area };

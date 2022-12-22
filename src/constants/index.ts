@@ -74,6 +74,8 @@ const TREE_ROOT = {
   prev: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
   children: [],
   parent: null,
+  snapping: {},
+  snapped: {},
   type: SHAPE_TYPES.GROUP.name,
 };
 

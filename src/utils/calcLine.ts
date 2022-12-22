@@ -1,4 +1,3 @@
-import immer from "immer";
 import { LINE_RESIZE_CIRCLE_CONFIG } from "../constants";
 import { Area, ShapeState } from "../types";
 import { pointAdd, pointMul } from "./calcPoint";
