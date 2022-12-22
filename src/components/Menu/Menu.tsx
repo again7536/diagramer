@@ -53,7 +53,10 @@ const Menu = () => {
         <Input
           type="textarea"
           style={{ "padding-bottom": "200px" }}
-          value={selectedShapeIds[0] && getShapeState(selectedShapeIds[0]).css}
+          value={
+            (selectedShapeIds[0] && getShapeState(selectedShapeIds[0]).css) ||
+            ""
+          }
           oninput={handleChangeCss}
         />
       </div>

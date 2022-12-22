@@ -4,7 +4,7 @@ import Menu from "./components/Menu/Menu";
 
 const App: Component = () => {
   return (
-    <div style={{ display: "flex", "flex-direction": "row" }}>
+    <div style={{ display: "flex", "flex-direction": "row", height: "100%" }}>
       <div style={{ flex: "2 0 200px" }}>
         <Menu />
       </div>

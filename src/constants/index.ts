@@ -68,6 +68,14 @@ const SHAPE_TYPES: { [key: string]: { name: ShapeType; icon: string } } = {
 
 const TREE_ROOT_ID = "root";
 const TREE_ROOT_IDX = 0;
+const TREE_ROOT = {
+  id: TREE_ROOT_ID,
+  cur: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  prev: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  children: [],
+  parent: null,
+  type: SHAPE_TYPES.GROUP.name,
+};
 
 export {
   RESIZE_CIRCLE_CONFIG,
@@ -75,4 +83,5 @@ export {
   SHAPE_TYPES,
   TREE_ROOT_ID,
   TREE_ROOT_IDX,
+  TREE_ROOT,
 };

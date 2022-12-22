@@ -13,25 +13,28 @@ interface RendererProps {
 const Renderer = (props: RendererProps) => {
   return (
     <Index each={props.getShapeState(props.parentId).children}>
-      {(child) => (
-        <>
-          <Switch>
-            <Match when={child()().type === SHAPE_TYPES.RECT.name}>
-              <Rect {...child()()} />
-            </Match>
-            <Match when={child()().type === SHAPE_TYPES.LINE.name}>
-              <Line {...child()()} />
-            </Match>
-            <Match when={child()().type === SHAPE_TYPES.ELLIPSE.name}>
-              <Ellipse {...child()()} />
-            </Match>
-          </Switch>
-          <Renderer
-            parentId={child()().id}
-            getShapeState={props.getShapeState}
-          />
-        </>
-      )}
+      {(childGetter) => {
+        const child = childGetter();
+        return (
+          <>
+            <Switch>
+              <Match when={child().type === SHAPE_TYPES.RECT.name}>
+                <Rect {...child()} />
+              </Match>
+              <Match when={child().type === SHAPE_TYPES.LINE.name}>
+                <Line {...child()} />
+              </Match>
+              <Match when={child().type === SHAPE_TYPES.ELLIPSE.name}>
+                <Ellipse {...child()} />
+              </Match>
+            </Switch>
+            <Renderer
+              parentId={child().id}
+              getShapeState={props.getShapeState}
+            />
+          </>
+        );
+      }}
     </Index>
   );
 };

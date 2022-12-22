@@ -2,6 +2,7 @@ import { batch, createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import {
   RESIZE_CIRCLE_CONFIG,
+  TREE_ROOT,
   TREE_ROOT_ID,
   TREE_ROOT_IDX,
 } from "../constants";
@@ -17,22 +18,11 @@ import {
 
 const shapeStore = () => {
   const [shapeStates, setShapeStates] = createStore<ShapeState[]>([
-    {
-      id: TREE_ROOT_ID,
-      cur: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-      prev: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-      children: [],
-      parent: null,
-      type: "g",
-    },
+    { ...TREE_ROOT },
   ]);
   const [idToIdx, setIdToIdx] = createSignal<{ [key: string]: number }>({
     [TREE_ROOT_ID]: TREE_ROOT_IDX,
   });
-
-  // const [treeParent, setTreeParent] = createStore<{ [key: string]: string }>(
-  //   {}
-  // );
   const [snaps, setSnaps] = createStore<Snap>({});
   const [selectedElem, setSelectedElem] = createSignal<SVGElement>();
   const [selectedShapeIds, setSelectedShapeIds] = createStore<string[]>([]);
@@ -52,7 +42,6 @@ const shapeStore = () => {
           states[TREE_ROOT_IDX].children.push(() => getShapeState(newState.id))
         )
       );
-      // setTreeParent(produce((parent) => (parent[newState.id] = TREE_ROOT_ID)));
     });
   };
 
@@ -127,8 +116,6 @@ const shapeStore = () => {
           Object.entries(snaps[id]?.snapped ?? {}).forEach(
             ([snapId, snapResizerIdx]) => {
               const snapState = getShapeState(snapId);
-              if (!snapState) return;
-
               const isP1 = snapResizerIdx === 0;
               const resizedPoint = applyResizeToPoint({
                 ...state,
@@ -156,8 +143,6 @@ const shapeStore = () => {
         .filter((id) => getShapeState(id)?.type === "line")
         .forEach((id, _, arr) => {
           const lineState = getShapeState(id);
-          if (!lineState) return;
-
           const { nextDim, intersections, isP1Moved } = getResizedLineState({
             shapeStates,
             lineState,
@@ -185,8 +170,6 @@ const shapeStore = () => {
           setSnaps(
             produce((draft) => {
               const snappedState = getShapeState(intersections.id);
-              if (!snappedState) return;
-
               const prevSnappedId = draft[lineState.id]?.snapping?.[resizerIdx];
               if (prevSnappedId)
                 delete draft[prevSnappedId]?.snapped[lineState.id];
@@ -211,14 +194,11 @@ const shapeStore = () => {
         .filter((id) => getShapeState(id)?.type !== "line")
         .forEach((id) => {
           const shapeState = getShapeState(id);
-          if (!shapeState) return;
 
           // move snapped line start
           Object.entries(snaps[id]?.snapped ?? {}).forEach(
             ([snapId, snapResizerIdx]) => {
               const snapState = getShapeState(snapId);
-              if (!snapState) return;
-
               const isP1 = snapResizerIdx === 0;
               setShapeOf(
                 snapId,
