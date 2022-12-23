@@ -1,3 +1,4 @@
+import { toCSS } from "transformation-matrix";
 import { ShapeState } from "../../../types";
 import { getCenterPoint, getWidthHeight } from "../../../utils";
 
@@ -9,10 +10,11 @@ const Ellipse = (props: EllipseProps) => {
       id={props.id}
       class="shape"
       style={props.css}
-      cx={getCenterPoint(props.cur).x}
-      cy={getCenterPoint(props.cur).y}
-      rx={getWidthHeight(props.cur).w / 2}
-      ry={getWidthHeight(props.cur).h / 2}
+      cx={0}
+      cy={0}
+      rx={1}
+      ry={1}
+      transform={toCSS(props.cur)}
     />
   );
 };

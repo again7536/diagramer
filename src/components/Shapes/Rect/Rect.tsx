@@ -1,3 +1,4 @@
+import { toCSS } from "transformation-matrix";
 import { RectState } from "../../../types";
 import { getWidthHeight } from "../../../utils";
 
@@ -8,11 +9,11 @@ const Rect = (props: RectProps) => {
     <rect
       id={props.id}
       class="shape"
-      width={getWidthHeight(props.cur).w}
-      height={getWidthHeight(props.cur).h}
-      // x={props.cur.x}
-      // y={props.cur.y}
-      transform={`translate(${props.cur.p1.x}, ${props.cur.p1.y})`}
+      width={2}
+      height={2}
+      x={-1}
+      y={-1}
+      transform={toCSS(props.cur)}
       style={props.css ?? undefined}
     />
   );

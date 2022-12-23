@@ -1,3 +1,5 @@
+import { applyToPoint, Matrix } from "transformation-matrix";
+import { DIR } from "../constants";
 import { Area } from "../types";
 import { pointAdd, pointMul } from "./calcPoint";
 

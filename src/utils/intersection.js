@@ -4,21 +4,21 @@ import { getCenterPoint, getWidthHeight } from "./calcPoint";
 
 const SNAP_LENGTH = 30;
 
-function snapLine({ shape, shapeType, isXMoved, path }) {
+function getLineIntersection({ shape, shapeType, isLeftTop, path }) {
   const rad = Math.atan2(
-    (path.p2.y - path.p1.y) * (isXMoved ? -1 : 1),
-    (path.p2.x - path.p1.x) * (isXMoved ? -1 : 1)
+    (path.p2.y - path.p1.y) * (isLeftTop ? -1 : 1),
+    (path.p2.x - path.p1.x) * (isLeftTop ? -1 : 1)
   );
 
   const snap = {
     x: Math.cos(rad) * SNAP_LENGTH,
     y: Math.sin(rad) * SNAP_LENGTH,
   };
-  const origin = isXMoved ? path.p1 : path.p2;
+  const moving = isLeftTop ? path.p1 : path.p2;
 
   const snapLine = {
-    p1: { x: origin.x + snap.x, y: origin.y + snap.y },
-    p2: { x: origin.x - snap.x, y: origin.y - snap.y },
+    p1: { x: moving.x + snap.x, y: moving.y + snap.y },
+    p2: { x: moving.x - snap.x, y: moving.y - snap.y },
   };
   const pathInfo = ShapeInfo.line(snapLine);
 
@@ -40,7 +40,14 @@ function snapLine({ shape, shapeType, isXMoved, path }) {
     });
   }
   const intersection = Intersection.intersect(pathInfo, shapeInfo);
-  return intersection.points;
+  const sorted = intersection.points.sort(
+    (p1, p2) =>
+      (p1.x - moving.x) * (p1.x - moving.x) +
+      (p1.y - moving.y) * (p1.y - moving.y) -
+      ((p2.x - moving.x) * (p2.x - moving.x) +
+        (p2.y - moving.y) * (p2.y - moving.y))
+  );
+  return sorted;
 }
 
-export { snapLine };
+export { getLineIntersection };

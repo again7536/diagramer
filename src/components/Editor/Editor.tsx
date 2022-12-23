@@ -1,28 +1,40 @@
-import { createSignal, For, Index, Match, Show, Switch } from "solid-js";
-import Rect from "../Shapes/Rect/Rect";
+import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import Resizer from "../Resizer/Resizer";
 import { useStore } from "../../storage";
-import Line from "../Shapes/Line/Line";
-import Ellipse from "../Shapes/Ellipse/Ellipse";
 import { Area, ShapeState } from "../../types";
 import LineResizer from "../Resizer/LineResizer/LineResizer";
-import { SHAPE_TYPES, TREE_ROOT_ID } from "../../constants";
+import { TREE_ROOT_ID } from "../../constants";
 import {
   calcShapeResize,
   getCenterPoint,
+  getPointsFromMatrix,
   getWidthHeight,
-  pointAdd,
-  pointMul,
+  isPointInArea,
   pointSub,
+  scaleByOffset,
 } from "../../utils";
 import Renderer from "./Renderer/Renderer";
+import {
+  applyToPoint,
+  compose,
+  identity,
+  Matrix,
+  translate,
+} from "transformation-matrix";
 
 interface DragStartDimension {
   x: number;
   y: number;
 }
 
+interface ViewBox {
+  prev: Matrix;
+  cur: Matrix;
+}
+
 const SVG_SIZE = { x: 600, y: 600 };
+const SCALE_CONST = 0.03;
+const TRANSLATE_CONST = 0.2;
 
 const Editor = () => {
   let svgRef: SVGSVGElement | undefined;
@@ -42,10 +54,7 @@ const Editor = () => {
     moveShapes,
   } = useStore().shape;
   const [isDrag, setDrag] = createSignal<boolean>(false);
-  const [viewBox, setViewBox] = createSignal<{ prev: Area; cur: Area }>({
-    cur: { p1: { x: 0, y: 0 }, p2: SVG_SIZE },
-    prev: { p1: { x: 0, y: 0 }, p2: SVG_SIZE },
-  });
+  const [viewBox, setViewBox] = createSignal<Matrix>(identity());
   const [selectorDim, setSelectorDim] = createSignal<Area>({
     p1: { x: 0, y: 0 },
     p2: { x: 0, y: 0 },
@@ -55,46 +64,38 @@ const Editor = () => {
     y: 0,
   });
 
-  const scale = () => SVG_SIZE.x / getWidthHeight(viewBox().cur).w;
+  const viewBoxScale = createMemo(
+    () => 2 / getWidthHeight(getPointsFromMatrix(viewBox())).w
+  );
+  const viewBoxPoint = createMemo(() => ({
+    p1: applyToPoint(viewBox(), { x: 0, y: 0 }),
+    p2: applyToPoint(viewBox(), SVG_SIZE),
+  }));
 
   const handleWheel = (e: WheelEvent) => {
     e.preventDefault();
-    if (e.ctrlKey) {
-      const diff = {
-        x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaY) * 0.05,
-        y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.05,
-      };
-      const ratio = {
-        x: e.offsetX / SVG_SIZE.x,
-        y: e.offsetY / SVG_SIZE.y,
-      };
-      const nextViewBox = {
-        p1: pointAdd({
-          p1: viewBox().cur.p1,
-          p2: pointMul({ p1: diff, p2: ratio }),
-        }),
-        p2: pointSub({
-          p1: viewBox().cur.p2,
-          p2: pointMul({
-            p1: diff,
-            p2: pointSub({ p1: { x: 1, y: 1 }, p2: ratio }),
-          }),
-        }),
-      };
-      setViewBox({ cur: nextViewBox, prev: nextViewBox });
-    } else {
-      const diff = {
-        x: getWidthHeight(viewBox().cur).w * Math.sign(e.deltaX) * 0.01,
-        y: getWidthHeight(viewBox().cur).h * Math.sign(e.deltaY) * 0.01,
-      };
-      setViewBox({
-        ...viewBox(),
-        cur: {
-          p1: pointAdd({ p1: viewBox().cur.p1, p2: diff }),
-          p2: pointAdd({ p1: viewBox().cur.p2, p2: diff }),
-        },
-      });
-    }
+
+    const widthHeight = getWidthHeight(getPointsFromMatrix(viewBox()));
+    if (e.ctrlKey)
+      setViewBox(
+        scaleByOffset({
+          mat: viewBox(),
+          sx: widthHeight.w * Math.sign(e.deltaY) * SCALE_CONST,
+          sy: widthHeight.h * Math.sign(e.deltaY) * SCALE_CONST,
+          cx: (widthHeight.w * e.offsetX) / SVG_SIZE.x,
+          cy: (widthHeight.h * e.offsetY) / SVG_SIZE.y,
+        })
+      );
+    else
+      setViewBox(
+        compose(
+          translate(
+            widthHeight.w * e.deltaX * TRANSLATE_CONST,
+            widthHeight.h * e.deltaY * TRANSLATE_CONST
+          ),
+          viewBox()
+        )
+      );
   };
 
   const handleMouseDown = (e: MouseEvent) => {
@@ -102,32 +103,35 @@ const Editor = () => {
     if ($target.classList[0] === "shape") setSelectedShapeIds([$target.id]);
     setDrag(true);
     setSelectedElem($target);
-    setStartDim({
-      x: e.clientX,
-      y: e.clientY,
-    });
+    setStartDim({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDrag() || !selectedElem()) return;
     const $selectedElem = selectedElem() as SVGElement;
     const diff = {
-      x: (e.clientX - startDim().x) / scale(),
-      y: (e.clientY - startDim().y) / scale(),
+      x: (e.clientX - startDim().x) / viewBoxScale(),
+      y: (e.clientY - startDim().y) / viewBoxScale(),
     };
 
     if ($selectedElem === svgRef) {
       const boundingRect = svgRef?.getBoundingClientRect() as DOMRect;
       setSelectorDim({
         ...calcShapeResize({
-          p1: pointSub({
-            p1: startDim(),
-            p2: { x: boundingRect.left, y: boundingRect.top },
-          }),
-          p2: pointSub({
-            p1: startDim(),
-            p2: { x: boundingRect.left, y: boundingRect.top },
-          }),
+          p1: applyToPoint(
+            viewBox(),
+            pointSub({
+              p1: startDim(),
+              p2: { x: boundingRect.left, y: boundingRect.top },
+            })
+          ),
+          p2: applyToPoint(
+            viewBox(),
+            pointSub({
+              p1: startDim(),
+              p2: { x: boundingRect.left, y: boundingRect.top },
+            })
+          ),
           diff,
           dir: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } },
         }),
@@ -143,16 +147,12 @@ const Editor = () => {
 
     if ($selected === svgRef) {
       const filtered = shapeStates
-        .filter((state) => {
-          const { x: cx, y: cy } = getCenterPoint(state.cur);
-          if (
-            cx > selectorDim().p1.x &&
-            cx < selectorDim().p2.x &&
-            cy > selectorDim().p1.y &&
-            cy < selectorDim().p2.y
+        .filter((state) =>
+          isPointInArea(
+            getCenterPoint(getPointsFromMatrix(state.cur)),
+            selectorDim()
           )
-            return state;
-        })
+        )
         .map((f) => f.id);
 
       setSelectedElem(
@@ -171,9 +171,9 @@ const Editor = () => {
       ref={svgRef}
       width={SVG_SIZE.x}
       height={SVG_SIZE.y}
-      viewBox={`${viewBox().cur.p1.x} ${viewBox().cur.p1.y} ${
-        getWidthHeight(viewBox().cur).w
-      } ${getWidthHeight(viewBox().cur).h}`}
+      viewBox={`${viewBoxPoint().p1.x} ${viewBoxPoint().p1.y} ${
+        getWidthHeight(viewBoxPoint()).w
+      } ${getWidthHeight(viewBoxPoint()).h}`}
       overflow="scroll"
       onmousedown={handleMouseDown}
       onmousemove={handleMouseMove}
@@ -188,11 +188,14 @@ const Editor = () => {
             <Match when={getShapeState(id).type === "line"}>
               <LineResizer
                 {...(getShapeState(id) as ShapeState)}
-                scale={scale()}
+                scale={viewBoxScale()}
               />
             </Match>
             <Match when={getShapeState(id).type !== "line"}>
-              <Resizer {...(getShapeState(id) as ShapeState)} scale={scale()} />
+              <Resizer
+                {...(getShapeState(id) as ShapeState)}
+                scale={viewBoxScale()}
+              />
             </Match>
           </Switch>
         )}

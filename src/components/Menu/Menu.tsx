@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import { compose, identity, scale, translate } from "transformation-matrix";
 import { v4 as uuidv4 } from "uuid";
 import { SHAPE_TYPES, TREE_ROOT_ID } from "../../constants";
 import { useStore } from "../../storage";
@@ -16,8 +17,8 @@ const Menu = () => {
     addShape({
       id: uuidv4(),
       type,
-      cur: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
-      prev: { p1: { x: 40, y: 40 }, p2: { x: 100, y: 100 } },
+      cur: compose(translate(30, 30), scale(20, 20)),
+      prev: compose(translate(30, 30), scale(20, 20)),
       children: [],
       parent: () => getShapeState(TREE_ROOT_ID),
       snapping: {},

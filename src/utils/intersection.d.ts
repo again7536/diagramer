@@ -1,13 +1,13 @@
 import { Area, ShapeType } from "../types";
 
-export declare function snapLine({
+export declare function getLineIntersection({
   shape,
   path,
   shapeType,
-  isXMoved,
+  isLeftTop,
 }: {
   shape: Area;
   path: Area;
   shapeType: ShapeType;
-  isXMoved: boolean;
+  isLeftTop: boolean;
 }): { x: number; y: number }[];

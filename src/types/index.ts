@@ -10,8 +10,8 @@ interface Area {
 interface ShapeState {
   id: string;
   type: ShapeType;
-  cur: Area;
-  prev: Area;
+  cur: Matrix;
+  prev: Matrix;
   children: (() => ShapeState)[];
   parent: (() => ShapeState) | null;
   snapping: { [idx: number]: string };

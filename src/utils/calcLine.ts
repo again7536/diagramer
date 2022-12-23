@@ -1,25 +1,7 @@
-import { LINE_RESIZE_CIRCLE_CONFIG } from "../constants";
-import { Area, ShapeState } from "../types";
-import { pointAdd, pointMul } from "./calcPoint";
-import { snapLine } from "./calcSnap";
-
-interface CalcResizeParams extends Area {
-  diff: { x: number; y: number };
-  dir: Area;
-}
-
-const calcLineResize = ({ p1, p2, diff, dir }: CalcResizeParams) => {
-  let { x: nextX1, y: nextY1 } = pointAdd({
-    p1: pointMul({ p1: dir.p1, p2: diff }),
-    p2: p1,
-  });
-  let { x: nextX2, y: nextY2 } = pointAdd({
-    p1: pointMul({ p1: dir.p2, p2: diff }),
-    p2: p2,
-  });
-
-  return { p1: { x: nextX1, y: nextY1 }, p2: { x: nextX2, y: nextY2 } };
-};
+import { LINE_RESIZE_CIRCLE_CONFIG, TREE_ROOT_ID } from "../constants";
+import { ShapeState } from "../types";
+import { getPointsFromMatrix, scaleByOffset } from "./calcMatrix";
+import { getLineIntersection } from "./intersection";
 
 interface ResizeLineParams {
   shapeStates: ShapeState[];
@@ -29,45 +11,50 @@ interface ResizeLineParams {
   isSnap: boolean;
 }
 
-const getResizedLineState = ({
+const getSnapped = ({
   shapeStates,
   lineState,
   diff,
   resizerIdx,
   isSnap,
 }: ResizeLineParams) => {
-  const isP1Moved = LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.p1.x > 0;
-  const nextDim = calcLineResize({
-    ...lineState.prev,
-    diff: { ...diff },
-    dir: { ...LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize },
+  const isLeftTop = LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.x < 0;
+  const mat = scaleByOffset({
+    mat: lineState.prev,
+    sx: (diff.x * LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.x) / 2,
+    sy: (diff.y * LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.y) / 2,
+    cx: LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.origin.x,
+    cy: LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.origin.y,
   });
 
   if (isSnap) {
     const intersections = shapeStates
-      .filter((shapeState) => lineState.id !== shapeState.id)
+      .filter(
+        (shapeState) =>
+          lineState.id !== shapeState.id && shapeState.id !== TREE_ROOT_ID
+      )
       .reduce(
         (
           acc: null | { id: string; points: { x: number; y: number }[] },
           shapeState
         ) => {
           if (acc) return acc;
-
-          const result = snapLine({
-            shape: { ...shapeState.cur },
+          const result = getLineIntersection({
+            shape: getPointsFromMatrix(shapeState.cur),
             shapeType: shapeState.type,
-            path: { ...nextDim },
-            isXMoved: isP1Moved,
+            path: getPointsFromMatrix(mat),
+            isLeftTop,
           });
+
           return result.length > 0
             ? { id: shapeState.id, points: result }
             : null;
         },
         null
       );
-    return { nextDim, intersections, isP1Moved };
+    return { nextMat: mat, intersections };
   }
-  return { nextDim, intersections: null, isP1Moved };
+  return { nextMat: mat, intersections: null };
 };
 
-export { calcLineResize, getResizedLineState };
+export { getSnapped };

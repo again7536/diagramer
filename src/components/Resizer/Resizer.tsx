@@ -2,6 +2,13 @@ import { createMemo, Index } from "solid-js";
 import { ShapeState } from "../../types";
 import { RESIZE_CIRCLE_CONFIG } from "../../constants";
 import { getWidthHeight } from "../../utils";
+import {
+  decomposeTSR,
+  scale,
+  toCSS,
+  compose,
+  applyToPoint,
+} from "transformation-matrix";
 
 interface ResizerProps extends ShapeState {
   scale: number;
@@ -15,13 +22,13 @@ const Resizer = (props: ResizerProps) => {
   );
 
   return (
-    <g transform={`translate(${props.cur.p1.x}, ${props.cur.p1.y})`}>
+    <g>
       <Index each={idxArr()}>
         {(i) => (
           <circle
             class={`resizer-${i()}`}
-            cx={getWidthHeight(props.cur).w * RESIZE_CIRCLE_CONFIG[i()].x}
-            cy={getWidthHeight(props.cur).h * RESIZE_CIRCLE_CONFIG[i()].y}
+            cx={applyToPoint(props.cur, RESIZE_CIRCLE_CONFIG[i()]).x}
+            cy={applyToPoint(props.cur, RESIZE_CIRCLE_CONFIG[i()]).y}
             r={3 / props.scale}
             fill="blue"
             stroke="skyblue"

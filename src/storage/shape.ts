@@ -1,6 +1,8 @@
 import { batch, createSignal } from "solid-js";
-import { createStore, produce, unwrap } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 import {
+  DIR,
+  LINE_RESIZE_CIRCLE_CONFIG,
   RESIZE_CIRCLE_CONFIG,
   TREE_ROOT,
   TREE_ROOT_ID,
@@ -9,11 +11,19 @@ import {
 import { ShapeState } from "../types";
 import { merge } from "lodash";
 import {
-  calcMove,
-  calcShapeResize,
-  applyResizeToPoint,
-  getResizedLineState,
+  scaleByOffset,
+  getSnapped,
+  getMatrixFromPoints,
+  getPointsFromMatrix,
 } from "../utils";
+import {
+  applyToPoint,
+  compose,
+  inverse,
+  Matrix,
+  transform,
+  translate,
+} from "transformation-matrix";
 
 const shapeStore = () => {
   const [shapeStates, setShapeStates] = createStore<ShapeState[]>([
@@ -24,6 +34,38 @@ const shapeStore = () => {
   });
   const [selectedElem, setSelectedElem] = createSignal<SVGElement>();
   const [selectedShapeIds, setSelectedShapeIds] = createStore<string[]>([]);
+
+  const _calcSnappedLine = (shapeState: ShapeState, mat: Matrix) => {
+    Object.entries(shapeState.snapped).forEach(([snapId, snapResizerIdx]) => {
+      const snapState = getShapeState(snapId);
+      const isLeftTop = snapResizerIdx === 0;
+      const resizedPoint = applyToPoint(
+        mat,
+        applyToPoint(
+          inverse(shapeState.prev),
+          isLeftTop
+            ? getPointsFromMatrix(snapState.prev).p1
+            : getPointsFromMatrix(snapState.prev).p2
+        )
+      );
+
+      setShapeStates(
+        produce((draft) => {
+          draft[idToIdx()[snapId]].cur = getMatrixFromPoints(
+            isLeftTop
+              ? {
+                  ...getPointsFromMatrix(snapState.prev),
+                  p1: resizedPoint,
+                }
+              : {
+                  ...getPointsFromMatrix(snapState.prev),
+                  p2: resizedPoint,
+                }
+          );
+        })
+      );
+    });
+  };
 
   const getShapeState = (id: string) => {
     const idx = idToIdx()[id];
@@ -95,36 +137,19 @@ const shapeStore = () => {
       .filter((id) => getShapeState(id)?.type !== "line")
       .forEach((id) => {
         const shapeState = getShapeState(id);
-        const nextDim = calcShapeResize({
-          ...shapeState.prev,
-          diff: { ...diff },
-          dir: { ...RESIZE_CIRCLE_CONFIG[resizerIdx].resize },
+        const mat = scaleByOffset({
+          mat: shapeState.prev,
+          sx: (diff.x * RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.x) / 2,
+          sy: (diff.y * RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.y) / 2,
+          cx: RESIZE_CIRCLE_CONFIG[resizerIdx].resize.origin.x,
+          cy: RESIZE_CIRCLE_CONFIG[resizerIdx].resize.origin.y,
         });
 
         batch(() => {
-          console.log(shapeState.snapped);
-          // resize snapped line start
-          Object.entries(shapeState.snapped).forEach(
-            ([snapId, snapResizerIdx]) => {
-              const snapState = getShapeState(snapId);
-              const isP1 = snapResizerIdx === 0;
-              const resizedPoint = applyResizeToPoint({
-                ...shapeState,
-                point: isP1 ? snapState.prev.p1 : snapState.prev.p2,
-              });
-              setShapeStates(
-                produce((draft) => {
-                  if (isP1) draft[idToIdx()[snapId]].cur.p1 = resizedPoint;
-                  else draft[idToIdx()[snapId]].cur.p2 = resizedPoint;
-                })
-              );
-            }
-          );
-          // resize snapped line end
-
+          _calcSnappedLine(shapeState, mat);
           setShapeOf(id, {
             ...shapeState,
-            cur: nextDim,
+            cur: mat,
           });
         });
       });
@@ -132,20 +157,20 @@ const shapeStore = () => {
     // line resize
     selectedShapeIds
       .filter((id) => getShapeState(id)?.type === "line")
-      .forEach((id, _, arr) => {
+      .forEach((id) => {
         const lineState = getShapeState(id);
-        const { nextDim, intersections, isP1Moved } = getResizedLineState({
+        const { nextMat, intersections } = getSnapped({
           shapeStates,
           lineState,
           resizerIdx,
           diff,
-          isSnap: arr.length === 1,
+          isSnap: selectedShapeIds.length === 1,
         });
 
         if (!intersections?.points?.[0]) {
           setShapeOf(id, {
             ...lineState,
-            cur: nextDim,
+            cur: nextMat,
           });
           return;
         }
@@ -153,13 +178,21 @@ const shapeStore = () => {
         // line snap
         setShapeStates(
           produce((draft) => {
-            merge(
-              draft[idToIdx()[id]].cur,
-              isP1Moved
-                ? { p1: { ...intersections.points[0] } }
-                : { p2: { ...intersections.points[0] } }
-            );
+            const isLeftTop =
+              LINE_RESIZE_CIRCLE_CONFIG[resizerIdx].resize.to.x < 0;
+            const points = isLeftTop
+              ? {
+                  ...getPointsFromMatrix(lineState.prev),
+                  p1: intersections.points[0],
+                }
+              : {
+                  ...getPointsFromMatrix(lineState.prev),
+                  p2: intersections.points[0],
+                };
+            const snappedMat = getMatrixFromPoints(points);
             const prevSnappedId = draft[idToIdx()[id]].snapping[resizerIdx];
+
+            draft[idToIdx()[id]].cur = snappedMat;
             if (prevSnappedId)
               delete draft[idToIdx()[prevSnappedId]].snapped[id];
             merge(draft[idToIdx()[id]].snapping, {
@@ -180,27 +213,12 @@ const shapeStore = () => {
         .filter((id) => getShapeState(id)?.type !== "line")
         .forEach((id) => {
           const shapeState = getShapeState(id);
+          const mat = transform(translate(diff.x, diff.y), shapeState.prev);
 
-          // move snapped line start
-          Object.entries(shapeState.snapped).forEach(
-            ([snapId, snapResizerIdx]) =>
-              setShapeStates(
-                produce((draft) => {
-                  const moved = calcMove({
-                    ...getShapeState(snapId).prev,
-                    diff: { ...diff },
-                  });
-                  if (snapResizerIdx === 0)
-                    draft[idToIdx()[snapId]].cur.p1 = moved.p1;
-                  else draft[idToIdx()[snapId]].cur.p2 = moved.p2;
-                })
-              )
-          );
-          // move snapped line end
-
+          _calcSnappedLine(shapeState, mat);
           setShapeOf(id, {
             ...shapeState,
-            cur: { ...calcMove({ ...shapeState.prev, diff: { ...diff } }) },
+            cur: mat,
           });
         });
 
@@ -209,11 +227,11 @@ const shapeStore = () => {
         .filter((id) => getShapeState(id)?.type === "line")
         .forEach((id) => {
           const lineState = getShapeState(id);
-          lineState &&
-            setShapeOf(id, {
-              ...lineState,
-              cur: { ...calcMove({ ...lineState.prev, diff: { ...diff } }) },
-            });
+          const mat = transform(translate(diff.x, diff.y), lineState.prev);
+          setShapeOf(id, {
+            ...lineState,
+            cur: mat,
+          });
         });
     });
   };

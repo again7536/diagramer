@@ -1,62 +1,69 @@
+import { identity } from "transformation-matrix";
 import { ShapeType } from "../types";
+
+const DIR = {
+  TOP_LEFT: { x: -1, y: -1 },
+  TOP: { x: 0, y: -1 },
+  TOP_RIGHT: { x: 1, y: -1 },
+  RIGHT: { x: 1, y: 0 },
+  BOTTOM_RIGHT: { x: 1, y: 1 },
+  BOTTOM: { x: 0, y: 1 },
+  BOTTOM_LEFT: { x: -1, y: 1 },
+  LEFT: { x: -1, y: 0 },
+};
 
 const RESIZE_CIRCLE_CONFIG = [
   {
-    x: 0,
-    y: 0,
+    ...DIR.TOP_LEFT,
     cursor: "nw-resize",
-    resize: { p1: { x: 1, y: 1 }, p2: { x: -1, y: -1 } },
+    resize: { to: DIR.TOP_LEFT, origin: DIR.BOTTOM_RIGHT },
   },
   {
-    x: 0.5,
-    y: 0,
+    ...DIR.TOP,
     cursor: "n-resize",
-    resize: { p1: { x: 0, y: 1 }, p2: { x: 0, y: -1 } },
+    resize: { to: DIR.TOP, origin: DIR.BOTTOM },
   },
   {
-    x: 1,
-    y: 0,
+    ...DIR.TOP_RIGHT,
     cursor: "ne-resize",
-    resize: { p1: { x: 0, y: 1 }, p2: { x: 1, y: -1 } },
+    resize: { to: DIR.TOP_RIGHT, origin: DIR.BOTTOM_LEFT },
   },
   {
-    x: 1,
-    y: 0.5,
+    ...DIR.RIGHT,
     cursor: "e-resize",
-    resize: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 0 } },
+    resize: { to: DIR.RIGHT, origin: DIR.LEFT },
   },
   {
-    x: 1,
-    y: 1,
+    ...DIR.BOTTOM_RIGHT,
     cursor: "se-resize",
-    resize: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } },
+    resize: { to: DIR.BOTTOM_RIGHT, origin: DIR.TOP_LEFT },
   },
   {
-    x: 0.5,
-    y: 1,
+    ...DIR.BOTTOM,
     cursor: "s-resize",
-    resize: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 1 } },
+    resize: { to: DIR.BOTTOM, origin: DIR.TOP },
   },
   {
-    x: 0,
-    y: 1,
+    ...DIR.BOTTOM_LEFT,
     cursor: "sw-resize",
-    resize: { p1: { x: 1, y: 0 }, p2: { x: -1, y: 1 } },
+    resize: { to: DIR.BOTTOM_LEFT, origin: DIR.TOP_RIGHT },
   },
   {
-    x: 0,
-    y: 0.5,
+    ...DIR.LEFT,
     cursor: "w-resize",
-    resize: { p1: { x: 1, y: 0 }, p2: { x: -1, y: 0 } },
+    resize: { to: DIR.LEFT, origin: DIR.RIGHT },
   },
 ];
 
 const LINE_RESIZE_CIRCLE_CONFIG = [
   {
     cursor: "w-resize",
-    resize: { p1: { x: 1, y: 1 }, p2: { x: 0, y: 0 } },
+    resize: { to: DIR.TOP_LEFT, origin: DIR.BOTTOM_RIGHT },
   },
-  { cursor: "e-resize", resize: { p1: { x: 0, y: 0 }, p2: { x: 1, y: 1 } } },
+  {
+    cursor: "e-resize",
+    resize: { to: DIR.BOTTOM_RIGHT, origin: DIR.TOP_LEFT },
+  },
 ];
 
 const SHAPE_TYPES: { [key: string]: { name: ShapeType; icon: string } } = {
@@ -70,8 +77,8 @@ const TREE_ROOT_ID = "root";
 const TREE_ROOT_IDX = 0;
 const TREE_ROOT = {
   id: TREE_ROOT_ID,
-  cur: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-  prev: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  cur: identity(),
+  prev: identity(),
   children: [],
   parent: null,
   snapping: {},
@@ -80,6 +87,7 @@ const TREE_ROOT = {
 };
 
 export {
+  DIR,
   RESIZE_CIRCLE_CONFIG,
   LINE_RESIZE_CIRCLE_CONFIG,
   SHAPE_TYPES,
